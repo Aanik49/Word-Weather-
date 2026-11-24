@@ -22,9 +22,10 @@ if (fs.existsSync(manifestPath)) {
   }
 }
 
-// 2. Write Bauhaus cream (#F4F1DE) colors for splash/status bar & adaptive icon background
+// 2. Write Bauhaus cream (#F4F1DE) colors & launch theme (removes default Capacitor splash logo)
 const valuesDir = path.join(resDir, 'values');
 fs.mkdirSync(valuesDir, { recursive: true });
+
 fs.writeFileSync(
   path.join(valuesDir, 'ic_launcher_background.xml'),
   `<?xml version="1.0" encoding="utf-8"?>
@@ -35,9 +36,8 @@ fs.writeFileSync(
   'utf8',
 );
 
-const colorsPath = path.join(valuesDir, 'colors.xml');
 fs.writeFileSync(
-  colorsPath,
+  path.join(valuesDir, 'colors.xml'),
   `<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="colorPrimary">#18181B</color>
@@ -49,13 +49,23 @@ fs.writeFileSync(
   'utf8',
 );
 
+const stylesPath = path.join(valuesDir, 'styles.xml');
+if (fs.existsSync(stylesPath)) {
+  let styles = fs.readFileSync(stylesPath, 'utf8');
+  styles = styles.replace(
+    /<item name="android:background">@drawable\/splash<\/item>/g,
+    '<item name="android:background">@color/bauhausPaper</item>',
+  );
+  fs.writeFileSync(stylesPath, styles, 'utf8');
+}
+
 // 3. Configure crisp Bauhaus Vector Adaptive Launcher Icon (razor-sharp on all Android DPIs)
 const drawableDir = path.join(resDir, 'drawable');
 const anyDpiDir = path.join(resDir, 'mipmap-anydpi-v26');
 fs.mkdirSync(drawableDir, { recursive: true });
 fs.mkdirSync(anyDpiDir, { recursive: true });
 
-// Remove legacy raster ic_launcher_foreground drawables if present to prevent duplicate resource errors
+// Remove legacy v24 foreground drawable if present
 const v24DrawableDir = path.join(resDir, 'drawable-v24');
 if (fs.existsSync(v24DrawableDir)) {
   const legacyFg = path.join(v24DrawableDir, 'ic_launcher_foreground.xml');
@@ -80,10 +90,10 @@ fs.writeFileSync(
         android:scaleX="0.140625"
         android:scaleY="0.140625">
 
-        <!-- Core Ink Circle -->
+        <!-- Core Ink Circle (cx=268, cy=244, r=150) -->
         <path
             android:fillColor="#18181B"
-            android:pathData="M268,94 A150,150 0 1,1 267.9,94 Z" />
+            android:pathData="M118,244 a150,150 0 1,0 300,0 a150,150 0 1,0 -300,0 Z" />
 
         <!-- Yellow Sun Rays -->
         <path
@@ -92,12 +102,12 @@ fs.writeFileSync(
             android:strokeLineCap="square"
             android:pathData="M340,76 L340,108 M428,164 L460,164 M402,102 L424,80 M278,102 L256,80 M366,194 L444,272" />
 
-        <!-- Vermilion Sun Disk -->
+        <!-- Vermilion Sun Disk (cx=340, cy=164, r=46) -->
         <path
             android:fillColor="#E03C31"
             android:strokeColor="#18181B"
             android:strokeWidth="8"
-            android:pathData="M340,118 A46,46 0 1,1 339.9,118 Z" />
+            android:pathData="M294,164 a46,46 0 1,0 92,0 a46,46 0 1,0 -92,0 Z" />
 
         <!-- Faceted Cobalt Cloud -->
         <path
@@ -152,4 +162,4 @@ const adaptiveIconXml = `<?xml version="1.0" encoding="utf-8"?>
 fs.writeFileSync(path.join(anyDpiDir, 'ic_launcher.xml'), adaptiveIconXml, 'utf8');
 fs.writeFileSync(path.join(anyDpiDir, 'ic_launcher_round.xml'), adaptiveIconXml, 'utf8');
 
-console.log('Configured Android manifest, Bauhaus colors, and adaptive vector game icon.');
+console.log('Configured Android manifest, Bauhaus launch theme, and adaptive vector game icon.');

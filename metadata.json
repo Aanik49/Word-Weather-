@@ -1,0 +1,8 @@
+{
+  "name": "Word Weather",
+  "description": "A Bauhaus Minimalist physics-driven word game where you tap clouds and steer wind to shape falling letters into words.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

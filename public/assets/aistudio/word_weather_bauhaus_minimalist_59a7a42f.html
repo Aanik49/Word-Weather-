@@ -1,0 +1,2408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Word Weather — Bauhaus Minimalist</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700;800;900&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-paper: #F4F1DE;
+      --bg-card: #FAF8EE;
+      --ink: #18181B;
+      --red: #E03C31;
+      --blue: #2B5B84;
+      --yellow: #F4B942;
+      --rule: 3px solid var(--ink);
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: var(--bg-paper);
+      color: var(--ink);
+      font-family: 'Space Grotesk', 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+      touch-action: none;
+    }
+
+    .font-display {
+      font-family: 'Outfit', 'Space Grotesk', sans-serif;
+    }
+
+    /* Archival Bauhaus Paper Grain Overlay */
+    .paper-grain::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 60;
+      opacity: 0.045;
+      background-image: radial-gradient(#18181B 0.75px, transparent 0.75px);
+      background-size: 6px 6px;
+    }
+
+    /* Crisp Bauhaus Poster Borders & Interactive Buttons */
+    .bauhaus-box {
+      border: 3px solid var(--ink);
+      background-color: var(--bg-paper);
+    }
+
+    .bauhaus-btn {
+      border: 3px solid var(--ink);
+      transition: transform 0.1s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.1s ease, background-color 0.15s ease;
+      box-shadow: 4px 4px 0px var(--ink);
+    }
+
+    .bauhaus-btn:hover:not(:disabled) {
+      transform: translate(-1px, -1px);
+      box-shadow: 5px 5px 0px var(--ink);
+    }
+
+    .bauhaus-btn:active:not(:disabled) {
+      transform: translate(3px, 3px);
+      box-shadow: 1px 1px 0px var(--ink);
+    }
+
+    .bauhaus-flat-btn {
+      transition: transform 0.1s ease, background-color 0.15s ease, color 0.15s ease;
+    }
+
+    .bauhaus-flat-btn:active:not(:disabled) {
+      transform: scale(0.96);
+    }
+
+    /* Ray rotation & subtle pulse */
+    @keyframes spinSlow {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    .spin-rays {
+      transform-origin: center;
+      animation: spinSlow 28s linear infinite;
+    }
+
+    @keyframes dashFlow {
+      to { stroke-dashoffset: -24; }
+    }
+
+    .animate-dash {
+      animation: dashFlow 1.1s linear infinite;
+    }
+
+    @keyframes shakeCrisp {
+      0%, 100% { transform: translateX(0); }
+      20% { transform: translateX(-6px); }
+      40% { transform: translateX(6px); }
+      60% { transform: translateX(-4px); }
+      80% { transform: translateX(4px); }
+    }
+
+    .shake-error {
+      animation: shakeCrisp 0.32s ease-in-out;
+    }
+
+    @keyframes stampPop {
+      0% { transform: scale(0.8); opacity: 0; }
+      75% { transform: scale(1.06); opacity: 1; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    .stamp-pop {
+      animation: stampPop 0.18s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
+
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+  </style>
+</head>
+<body class="paper-grain">
+  <div id="app" class="relative w-full h-full flex flex-col overflow-hidden" style="background-color: var(--bg-paper); color: var(--ink);">
+
+    <!-- =================================================================== -->
+    <!-- 1. BAUHAUS POSTER LOBBY SCREEN                                      -->
+    <!-- =================================================================== -->
+    <section id="lobby-screen" class="relative z-20 w-full h-full flex flex-col justify-between overflow-y-auto no-scrollbar">
+
+      <!-- TOP POSTER HEADER WITH STACKED GEOMETRIC TITLE & FLANKING RULES -->
+      <header class="w-full pt-3 sm:pt-5 pb-2 px-3 sm:px-6 shrink-0">
+        <div class="max-w-5xl mx-auto flex items-center justify-center gap-3 sm:gap-6">
+          <div class="hidden sm:block flex-1 h-[3px]" style="background-color: var(--ink);"></div>
+          <div class="text-center leading-[0.92] select-none">
+            <h1 class="font-display font-black tracking-tight text-3xl sm:text-5xl uppercase" style="color: var(--ink);">
+              WORD
+            </h1>
+            <div class="font-display font-black tracking-tight text-3xl sm:text-5xl uppercase" style="color: var(--blue);">
+              WEATHER
+            </div>
+          </div>
+          <div class="hidden sm:block flex-1 h-[3px]" style="background-color: var(--ink);"></div>
+        </div>
+      </header>
+
+      <!-- MAIN POSTER COMPOSITION (LEFT ARCHITECTURAL COLUMN + CENTER EMBLEM & MODULES) -->
+      <main class="flex-1 w-full max-w-5xl mx-auto px-3 sm:px-6 py-1 sm:py-2 flex flex-col md:flex-row items-center md:items-stretch justify-center gap-3 sm:gap-6 min-h-0">
+
+        <!-- LEFT COLUMN STACK: PLAY (RED BLOCK), SETTINGS (YELLOW CIRCLE IN SQUARE), DAILY CHALLENGE (BLUE BLOCK) -->
+        <aside class="w-full md:w-44 lg:w-48 shrink-0 flex flex-row md:flex-col items-stretch justify-center">
+          <!-- Vertical Architectural Stem Line on Desktop -->
+          <div class="hidden md:flex justify-end pr-6 h-4">
+            <div class="w-[3px] h-full" style="background-color: var(--ink);"></div>
+          </div>
+
+          <!-- 1. Vermilion Red PLAY Block -->
+          <button
+            id="lobby-play-btn"
+            type="button"
+            class="bauhaus-flat-btn flex-1 md:flex-none md:h-28 border-[3px] border-[#18181B] flex flex-col items-center justify-center p-2 cursor-pointer"
+            style="background-color: var(--red); color: var(--ink); border-color: var(--ink);"
+          >
+            <span class="font-display font-black text-xl sm:text-2xl tracking-wide uppercase">PLAY</span>
+            <span class="text-[10px] font-bold uppercase tracking-widest opacity-85 mt-0.5">Classic</span>
+          </button>
+
+          <!-- 2. Off-White Square Cell with Yellow Circle SETTINGS Button -->
+          <div
+            class="flex-1 md:flex-none md:aspect-square border-y-[3px] border-r-[3px] md:border-t-0 md:border-x-[3px] flex items-center justify-center p-2 sm:p-3"
+            style="border-color: var(--ink); background-color: var(--bg-paper);"
+          >
+            <button
+              id="lobby-settings-btn"
+              type="button"
+              class="bauhaus-flat-btn w-16 h-16 sm:w-28 sm:h-28 md:w-full md:h-full rounded-full border-[3px] flex items-center justify-center font-display font-extrabold text-[11px] sm:text-sm tracking-wider uppercase cursor-pointer"
+              style="background-color: var(--yellow); border-color: var(--ink); color: var(--ink);"
+            >
+              SETTINGS
+            </button>
+          </div>
+
+          <!-- 3. Cobalt Blue DAILY CHALLENGE Block -->
+          <button
+            id="lobby-daily-btn"
+            type="button"
+            class="bauhaus-flat-btn flex-1 md:flex-none md:h-24 border-y-[3px] border-r-[3px] md:border-t-0 md:border-x-[3px] flex flex-col items-center justify-center p-2 text-center cursor-pointer"
+            style="background-color: var(--blue); border-color: var(--ink); color: #F4F1DE;"
+          >
+            <span class="font-display font-extrabold text-xs sm:text-sm leading-tight tracking-wide uppercase">
+              DAILY<br/>CHALLENGE
+            </span>
+          </button>
+        </aside>
+
+        <!-- CENTER POSTER STAGE: EMBLEM + WEATHER SELECT STRIP + FEATURED PUZZLE -->
+        <div class="flex-1 flex flex-col items-center justify-between max-w-xl w-full gap-2.5 sm:gap-3">
+
+          <!-- Top Horizontal Structural Rule connecting Left Column to Emblem -->
+          <div class="hidden md:block w-full h-[3px] mt-4" style="background-color: var(--ink);"></div>
+
+          <!-- CENTRAL BAUHAUS WEATHER EMBLEM (Interactive SVG Poster Art) -->
+          <div class="relative flex flex-col items-center justify-center my-auto">
+            <button
+              id="emblem-cycle-btn"
+              type="button"
+              title="Tap emblem to cycle weather preview"
+              aria-label="Interactive Bauhaus Weather Emblem"
+              class="group relative w-44 h-44 sm:w-56 sm:h-56 flex items-center justify-center cursor-pointer focus:outline-none transition-transform active:scale-95"
+            >
+              <svg id="bauhaus-emblem-svg" class="w-full h-full overflow-visible" viewBox="0 0 260 240">
+                <!-- Core Black Bauhaus Circle -->
+                <circle cx="132" cy="120" r="88" fill="#18181B" />
+
+                <!-- Sun Rays & Geometric Sun Disk (Upper Right) -->
+                <g id="emblem-sun-group" class="transition-transform duration-300">
+                  <g class="spin-rays" style="transform-origin: 174px 76px;">
+                    <line x1="174" y1="24" x2="174" y2="38" stroke="#F4B942" stroke-width="6" />
+                    <line x1="174" y1="114" x2="174" y2="128" stroke="#F4B942" stroke-width="6" />
+                    <line x1="122" y1="76" x2="136" y2="76" stroke="#F4B942" stroke-width="6" />
+                    <line x1="212" y1="76" x2="226" y2="76" stroke="#F4B942" stroke-width="6" />
+                    <line x1="137" y1="39" x2="147" y2="49" stroke="#F4B942" stroke-width="6" />
+                    <line x1="201" y1="103" x2="211" y2="113" stroke="#F4B942" stroke-width="6" />
+                    <line x1="211" y1="39" x2="201" y2="49" stroke="#F4B942" stroke-width="6" />
+                    <line x1="147" y1="103" x2="137" y2="113" stroke="#F4B942" stroke-width="6" />
+                  </g>
+                  <!-- Long Diagonal Bauhaus Sunbeam Bar -->
+                  <line x1="194" y1="96" x2="232" y2="134" stroke="#F4B942" stroke-width="8" />
+                  <circle id="emblem-sun-disk" cx="174" cy="76" r="24" fill="#E03C31" />
+                </g>
+
+                <!-- Diagonal White Dashed Wind Streaks across lower right of black circle -->
+                <g id="emblem-wind-group" class="transition-opacity duration-300">
+                  <line x1="116" y1="184" x2="178" y2="122" stroke="#F4F1DE" stroke-width="3.2" stroke-dasharray="7 5" class="animate-dash" />
+                  <line x1="130" y1="194" x2="192" y2="132" stroke="#F4F1DE" stroke-width="3.2" stroke-dasharray="7 5" class="animate-dash" />
+                  <line x1="146" y1="198" x2="202" y2="142" stroke="#F4F1DE" stroke-width="3.2" stroke-dasharray="7 5" class="animate-dash" />
+                </g>
+
+                <!-- Geometric Faceted Cobalt Cloud + Vertical Rain Lines (Left) -->
+                <g id="emblem-cloud-group" class="transition-transform duration-300">
+                  <!-- Faceted Low-Poly Cloud Silhouette -->
+                  <polygon points="34,132 54,104 72,104 82,82 108,82 120,104 142,104 152,122 140,136 42,136" fill="#2B5B84" stroke="#18181B" stroke-width="2.5" stroke-linejoin="round" />
+                  <!-- Internal Bauhaus Facet Triangulation Lines -->
+                  <polyline points="54,104 74,136 82,82 104,136 108,82 126,136 120,104" fill="none" stroke="#18181B" stroke-width="2" />
+                  <line x1="54" y1="104" x2="120" y2="104" stroke="#18181B" stroke-width="2" />
+
+                  <!-- Vertical Rain Lines -->
+                  <g id="emblem-rain-lines" stroke="#2B5B84" stroke-width="3" stroke-linecap="square">
+                    <line x1="52" y1="142" x2="52" y2="188" />
+                    <line x1="64" y1="142" x2="64" y2="202" />
+                    <line x1="76" y1="142" x2="76" y2="192" />
+                    <line x1="88" y1="142" x2="88" y2="208" />
+                    <line x1="100" y1="142" x2="100" y2="196" />
+                    <line x1="112" y1="142" x2="112" y2="204" />
+                    <line x1="124" y1="142" x2="124" y2="186" />
+                  </g>
+
+                  <!-- Snow Geometric Hex-Stars (shown prominently when Snow selected) -->
+                  <g id="emblem-snow-marks" opacity="0.2" stroke="#2B5B84" stroke-width="2.5">
+                    <path d="M62 156v14M56 160l12 6M68 160l-12 6" />
+                    <path d="M94 166v14M88 170l12 6M100 170l-12 6" />
+                    <path d="M122 154v14M116 158l12 6M128 158l-12 6" />
+                  </g>
+                </g>
+              </svg>
+            </button>
+          </div>
+
+          <!-- WEATHER SELECT 4-COLUMN BOXED STRIP -->
+          <div class="w-full max-w-md flex flex-col items-center">
+            <div class="text-[11px] font-display font-extrabold tracking-widest uppercase mb-1">
+              WEATHER SELECT
+            </div>
+
+            <div class="w-full grid grid-cols-4 border-[3px]" style="border-color: var(--ink);">
+              <!-- 1. RAIN -->
+              <button
+                type="button"
+                data-weather="rain"
+                class="lobby-weather-cell py-2 px-1 flex flex-col items-center justify-center gap-1 border-r-[3px] transition-colors cursor-pointer"
+                style="border-color: var(--ink);"
+              >
+                <svg class="w-7 h-7" viewBox="0 0 32 32" fill="none">
+                  <path d="M8 18H24C26.8 18 29 15.8 29 13C29 10.4 27.1 8.3 24.6 8C23.6 5.1 20.9 3 17.7 3C13.8 3 10.6 6 10.2 9.8C7.4 10.2 5.3 12.6 5.3 15.5C5.3 16.9 6.5 18 8 18Z" stroke="currentColor" stroke-width="2.2" />
+                  <circle cx="11" cy="23" r="1.4" fill="currentColor" />
+                  <circle cx="16" cy="25" r="1.4" fill="currentColor" />
+                  <circle cx="21" cy="23" r="1.4" fill="currentColor" />
+                </svg>
+                <span class="text-[10px] font-extrabold tracking-wider uppercase">RAIN</span>
+              </button>
+
+              <!-- 2. SNOW -->
+              <button
+                type="button"
+                data-weather="snow"
+                class="lobby-weather-cell py-2 px-1 flex flex-col items-center justify-center gap-1 border-r-[3px] transition-colors cursor-pointer"
+                style="border-color: var(--ink);"
+              >
+                <svg class="w-7 h-7" viewBox="0 0 32 32" fill="none">
+                  <polygon points="16,4 26,10 26,22 16,28 6,22 6,10" stroke="currentColor" stroke-width="2.2" />
+                  <line x1="16" y1="4" x2="16" y2="28" stroke="currentColor" stroke-width="1.8" />
+                  <line x1="6" y1="10" x2="26" y2="22" stroke="currentColor" stroke-width="1.8" />
+                  <line x1="26" y1="10" x2="6" y2="22" stroke="currentColor" stroke-width="1.8" />
+                </svg>
+                <span class="text-[10px] font-extrabold tracking-wider uppercase">SNOW</span>
+              </button>
+
+              <!-- 3. WIND -->
+              <button
+                type="button"
+                data-weather="wind"
+                class="lobby-weather-cell py-2 px-1 flex flex-col items-center justify-center gap-1 border-r-[3px] transition-colors cursor-pointer"
+                style="border-color: var(--ink);"
+              >
+                <svg class="w-7 h-7" viewBox="0 0 32 32" fill="none">
+                  <line x1="7" y1="25" x2="24" y2="8" stroke="currentColor" stroke-width="2.6" stroke-linecap="square" />
+                  <polyline points="14,8 24,8 24,18" stroke="currentColor" stroke-width="2.6" stroke-linecap="square" />
+                </svg>
+                <span class="text-[10px] font-extrabold tracking-wider uppercase">WIND</span>
+              </button>
+
+              <!-- 4. SUN -->
+              <button
+                type="button"
+                data-weather="sun"
+                class="lobby-weather-cell py-2 px-1 flex flex-col items-center justify-center gap-1 transition-colors cursor-pointer"
+              >
+                <svg class="w-7 h-7" viewBox="0 0 32 32" fill="none">
+                  <circle cx="16" cy="16" r="6" stroke="currentColor" stroke-width="2.2" />
+                  <path d="M16 3V7M16 25V29M3 16H7M25 16H29M6.8 6.8L9.6 9.6M22.4 22.4L25.2 25.2M25.2 6.8L22.4 9.6M9.6 22.4L6.8 25.2" stroke="currentColor" stroke-width="2.2" stroke-linecap="square" />
+                </svg>
+                <span class="text-[10px] font-extrabold tracking-wider uppercase">SUN</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- FEATURED PUZZLE BOXED MODULE (Interactive Mini Cross-Letter Puzzle) -->
+          <div class="w-full max-w-md flex flex-col items-center">
+            <div class="w-full flex items-center gap-2 mb-1">
+              <div class="flex-1 h-[3px]" style="background-color: var(--ink);"></div>
+              <span class="text-[11px] font-display font-extrabold tracking-widest uppercase">FEATURED PUZZLE</span>
+              <div class="flex-1 h-[3px]" style="background-color: var(--ink);"></div>
+            </div>
+
+            <div class="w-full border-[3px] px-3 py-2 flex flex-col items-center" style="border-color: var(--ink); background-color: var(--bg-paper);">
+              <!-- Interactive Mini Tile Cross Arrangement -->
+              <div id="featured-puzzle-grid" class="grid grid-cols-8 gap-1 my-0.5">
+                <!-- Populated by JS with interactive Bauhaus tiles -->
+              </div>
+
+              <div class="mt-1.5 flex items-center justify-between w-full text-[10px] sm:text-[11px] font-extrabold tracking-wider uppercase">
+                <span id="featured-word-status">
+                  TODAY'S CLOUD: <strong style="color: var(--blue);">C-L-O-U-D</strong>
+                </span>
+                <button
+                  id="featured-clear-btn"
+                  type="button"
+                  class="px-2 py-0.5 border-2 text-[9px] font-extrabold uppercase cursor-pointer"
+                  style="border-color: var(--ink);"
+                >
+                  RESET TILES
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <!-- BOTTOM FOOTER BAR SEPARATED BY FULL-WIDTH 3PX CHARCOAL RULE -->
+      <footer class="w-full border-t-[3px] py-2.5 sm:py-3 px-4 shrink-0" style="border-color: var(--ink); background-color: var(--bg-paper);">
+        <div class="max-w-xl mx-auto flex items-center justify-around gap-4">
+          <!-- Circle Icon + PROFILE -->
+          <button
+            type="button"
+            data-modal="profile"
+            class="footer-nav-btn bauhaus-flat-btn flex items-center gap-2 font-display font-extrabold text-xs sm:text-sm tracking-wider uppercase cursor-pointer"
+          >
+            <span class="w-5 h-5 rounded-full border-[3px] inline-block" style="border-color: var(--ink);"></span>
+            <span>PROFILE</span>
+          </button>
+
+          <!-- Bag/Square Icon + STORE -->
+          <button
+            type="button"
+            data-modal="store"
+            class="footer-nav-btn bauhaus-flat-btn flex items-center gap-2 font-display font-extrabold text-xs sm:text-sm tracking-wider uppercase cursor-pointer"
+          >
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M7 7V6a5 5 0 0 1 10 0v1h3v14H4V7h3zm2 0h6V6a3 3 0 0 0-6 0v1z" />
+            </svg>
+            <span>STORE</span>
+          </button>
+
+          <!-- Cross Icon + QUIT -->
+          <button
+            type="button"
+            data-modal="quit"
+            class="footer-nav-btn bauhaus-flat-btn flex items-center gap-2 font-display font-extrabold text-xs sm:text-sm tracking-wider uppercase cursor-pointer"
+          >
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="square">
+              <line x1="5" y1="5" x2="19" y2="19" />
+              <line x1="19" y1="5" x2="5" y2="19" />
+            </svg>
+            <span>QUIT</span>
+          </button>
+        </div>
+      </footer>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- 2. LIVE BAUHAUS SKY ARENA (GAMEPLAY SCREEN)                         -->
+    <!-- =================================================================== -->
+    <section id="game-screen" class="hidden relative w-full h-full flex flex-col overflow-hidden">
+
+      <!-- TOP BAUHAUS HUD BAR -->
+      <header class="w-full border-b-[3px] px-2.5 py-2 sm:px-5 sm:py-2.5 shrink-0 z-20" style="border-color: var(--ink); background-color: var(--bg-paper);">
+        <div class="max-w-5xl mx-auto flex items-center justify-between gap-2">
+
+          <!-- Left: LOBBY Back Button + Mode Badge -->
+          <div class="flex items-center gap-2">
+            <button
+              id="game-lobby-btn"
+              type="button"
+              class="bauhaus-btn h-9 sm:h-10 px-3 font-display font-extrabold text-xs sm:text-sm tracking-wider uppercase flex items-center gap-1.5 cursor-pointer"
+              style="background-color: var(--bg-paper); color: var(--ink);"
+            >
+              <span>←</span>
+              <span>LOBBY</span>
+            </button>
+
+            <span
+              id="game-mode-badge"
+              class="hidden sm:inline-block px-2.5 py-1 border-[2px] text-[10px] font-extrabold tracking-widest uppercase"
+              style="border-color: var(--ink); background-color: var(--yellow); color: var(--ink);"
+            >
+              CLASSIC
+            </span>
+          </div>
+
+          <!-- Center: Score, Words Found & Target / Timer -->
+          <div class="flex items-center border-[3px]" style="border-color: var(--ink); background-color: var(--bg-paper);">
+            <div class="px-2.5 sm:px-4 py-1 border-r-[3px] text-center" style="border-color: var(--ink);">
+              <div class="text-[9px] font-extrabold uppercase tracking-wider opacity-75">SCORE</div>
+              <div id="hud-score" class="font-display font-black text-sm sm:text-base tabular-nums leading-tight">0</div>
+            </div>
+
+            <div class="px-2.5 sm:px-4 py-1 border-r-[3px] text-center" style="border-color: var(--ink);">
+              <div class="text-[9px] font-extrabold uppercase tracking-wider opacity-75">WORDS</div>
+              <div id="hud-words" class="font-display font-black text-sm sm:text-base tabular-nums leading-tight">0</div>
+            </div>
+
+            <div class="px-2.5 sm:px-4 py-1 text-center">
+              <div id="hud-goal-label" class="text-[9px] font-extrabold uppercase tracking-wider opacity-75">GOAL</div>
+              <div id="hud-goal-val" class="font-display font-black text-sm sm:text-base tabular-nums leading-tight">0/3</div>
+            </div>
+          </div>
+
+          <!-- Right: Active Weather Pill + Audio Toggle -->
+          <div class="flex items-center gap-1.5 sm:gap-2">
+            <div
+              id="hud-weather-pill"
+              class="h-9 sm:h-10 px-2.5 sm:px-3 border-[3px] flex items-center gap-1.5 font-display font-extrabold text-xs tracking-wider uppercase"
+              style="border-color: var(--ink); background-color: var(--blue); color: #F4F1DE;"
+            >
+              <span id="hud-weather-dot" class="w-2.5 h-2.5 rounded-full bg-[#F4F1DE]"></span>
+              <span id="hud-weather-text">RAIN</span>
+            </div>
+
+            <button
+              id="game-sound-btn"
+              type="button"
+              aria-label="Toggle Sound"
+              class="bauhaus-btn w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center text-sm font-bold cursor-pointer"
+              style="background-color: var(--bg-paper);"
+            >
+              <span id="sound-icon">🔊</span>
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <!-- MIDDLE INTERACTIVE BAUHAUS SKY ARENA CANVAS -->
+      <main id="arena-wrapper" class="relative flex-1 w-full min-h-0 overflow-hidden">
+        <canvas id="sky-canvas" class="block w-full h-full"></canvas>
+
+        <!-- Toast Feedback Banner -->
+        <div class="pointer-events-none absolute top-2.5 left-1/2 -translate-x-1/2 z-20">
+          <div
+            id="game-toast"
+            class="border-[3px] px-3.5 py-1 text-xs font-extrabold uppercase tracking-wider opacity-0 transition-opacity duration-200 whitespace-nowrap"
+            style="border-color: var(--ink); background-color: var(--yellow); color: var(--ink); box-shadow: 3px 3px 0 var(--ink);"
+          >
+            Tap clouds or press 1–4 • Swipe sky to steer wind
+          </div>
+        </div>
+      </main>
+
+      <!-- BOTTOM CONTROL DOCK: WORD BUILDER TRAY + 4-BOX WEATHER SELECT STRIP -->
+      <footer class="w-full border-t-[3px] px-2.5 py-2 sm:px-5 sm:py-2.5 shrink-0 z-20" style="border-color: var(--ink); background-color: var(--bg-paper);">
+        <div class="max-w-3xl mx-auto flex flex-col gap-2">
+
+          <!-- Word Builder Tray -->
+          <div id="word-tray-box" class="w-full border-[3px] p-1.5 flex items-center justify-between gap-1.5 sm:gap-2" style="border-color: var(--ink); background-color: var(--bg-paper);">
+            <button
+              id="tray-clear-btn"
+              type="button"
+              class="bauhaus-flat-btn h-10 px-2.5 sm:px-3 border-[2px] font-display font-extrabold text-[11px] sm:text-xs tracking-wider uppercase shrink-0 cursor-pointer"
+              style="border-color: var(--ink); background-color: var(--bg-paper);"
+            >
+              CLEAR
+            </button>
+
+            <div id="tray-slots" class="flex-1 min-h-[40px] flex items-center justify-center gap-1 sm:gap-1.5 overflow-x-auto no-scrollbar px-1">
+              <span id="tray-placeholder" class="text-[11px] sm:text-xs font-bold uppercase tracking-wider opacity-70 text-center">
+                Tap or drag across letters (3–8 letters)
+              </span>
+            </div>
+
+            <button
+              id="tray-shuffle-btn"
+              type="button"
+              title="Shuffle Breeze"
+              class="bauhaus-flat-btn h-10 px-2.5 sm:px-3 border-[2px] font-display font-extrabold text-[11px] sm:text-xs tracking-wider uppercase shrink-0 cursor-pointer"
+              style="border-color: var(--ink); background-color: var(--yellow); color: var(--ink);"
+            >
+              BREEZE
+            </button>
+
+            <button
+              id="tray-submit-btn"
+              type="button"
+              disabled
+              class="bauhaus-flat-btn h-10 px-3 sm:px-4 border-[2px] font-display font-black text-xs sm:text-sm tracking-wider uppercase shrink-0 disabled:opacity-35 cursor-pointer disabled:cursor-not-allowed"
+              style="border-color: var(--ink); background-color: var(--red); color: #F4F1DE;"
+            >
+              SUBMIT
+            </button>
+          </div>
+
+          <!-- 4-Box Bauhaus Weather Select Strip -->
+          <div class="w-full grid grid-cols-4 border-[3px]" style="border-color: var(--ink);">
+            <button type="button" data-weather="rain" class="game-weather-cell py-1.5 px-2 flex items-center justify-center gap-1.5 border-r-[3px] font-display font-extrabold text-xs tracking-wider uppercase cursor-pointer" style="border-color: var(--ink);">
+              <span>1 · RAIN</span>
+            </button>
+            <button type="button" data-weather="snow" class="game-weather-cell py-1.5 px-2 flex items-center justify-center gap-1.5 border-r-[3px] font-display font-extrabold text-xs tracking-wider uppercase cursor-pointer" style="border-color: var(--ink);">
+              <span>2 · SNOW</span>
+            </button>
+            <button type="button" data-weather="wind" class="game-weather-cell py-1.5 px-2 flex items-center justify-center gap-1.5 border-r-[3px] font-display font-extrabold text-xs tracking-wider uppercase cursor-pointer" style="border-color: var(--ink);">
+              <span>3 · WIND</span>
+            </button>
+            <button type="button" data-weather="sun" class="game-weather-cell py-1.5 px-2 flex items-center justify-center gap-1.5 font-display font-extrabold text-xs tracking-wider uppercase cursor-pointer">
+              <span>4 · SUN</span>
+            </button>
+          </div>
+        </div>
+      </footer>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- 3. BAUHAUS ARCHITECTURAL MODAL (SETTINGS, PROFILE, STORE, QUIT)     -->
+    <!-- =================================================================== -->
+    <div id="modal-overlay" class="hidden fixed inset-0 z-50 bg-black/55 flex items-center justify-center p-4">
+      <div class="stamp-pop w-full max-w-md border-[3px] p-5" style="border-color: var(--ink); background-color: var(--bg-paper); box-shadow: 8px 8px 0 var(--ink);">
+        <div class="flex items-center justify-between border-b-[3px] pb-3 mb-4" style="border-color: var(--ink);">
+          <h2 id="modal-heading" class="font-display font-black text-xl tracking-wider uppercase">SETTINGS</h2>
+          <button
+            id="modal-close-btn"
+            type="button"
+            class="bauhaus-btn w-8 h-8 flex items-center justify-center font-black text-sm cursor-pointer"
+            style="background-color: var(--red); color: #F4F1DE;"
+          >
+            ✕
+          </button>
+        </div>
+
+        <div id="modal-content" class="space-y-4 text-sm">
+          <!-- Populated dynamically -->
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    (() => {
+      'use strict';
+
+      // =======================================================================
+      // 1. BAUHAUS COLOR PALETTES (EQUIPPABLE IN STORE)
+      // =======================================================================
+      const PALETTES = {
+        classic1923: {
+          id: 'classic1923',
+          name: 'Classic 1923',
+          desc: 'Original Weimar archival off-white, vermilion, cobalt & cadmium yellow.',
+          paper: '#F4F1DE',
+          ink: '#18181B',
+          red: '#E03C31',
+          blue: '#2B5B84',
+          yellow: '#F4B942'
+        },
+        dessauNight: {
+          id: 'dessauNight',
+          name: 'Dessau Night',
+          desc: 'High-contrast architectural slate paper with electric Bauhaus primaries.',
+          paper: '#E6E8EC',
+          ink: '#111827',
+          red: '#DC2626',
+          blue: '#1D4ED8',
+          yellow: '#F59E0B'
+        },
+        primaryRed: {
+          id: 'primaryRed',
+          name: 'Primary Crimson',
+          desc: 'Warm poster parchment with deep crimson, Prussian blue & ochre.',
+          paper: '#F7EFE2',
+          ink: '#1C1917',
+          red: '#BE123C',
+          blue: '#1E40AF',
+          yellow: '#EAB308'
+        },
+        weimarTeal: {
+          id: 'weimarTeal',
+          name: 'Weimar Teal',
+          desc: 'Cool gallery cream paired with Bauhaus teal, terracotta & saffron.',
+          paper: '#F1F5F2',
+          ink: '#14211D',
+          red: '#D95338',
+          blue: '#1E6B7B',
+          yellow: '#E9B44C'
+        }
+      };
+
+      // =======================================================================
+      // 2. COMPREHENSIVE BUILT-IN ENGLISH DICTIONARY (2,500+ 3-8 LETTER WORDS)
+      // =======================================================================
+      const RAW_WORDS = `
+        ACE ACT ADD AGE AGO AID AIM AIR ALE ALL AND ANT ANY APE ARC ARE ARK ARM ART ASH ASK ATE AWE AXE
+        BAD BAG BAN BAR BAT BAY BED BEE BEG BET BID BIG BIN BIT BOA BOG BOW BOX BOY BUD BUG BUN BUS BUT BUY
+        CAB CAN CAP CAR CAT COB COD COG COP COT COW CRY CUB CUE CUP CUR CUT
+        DAD DAM DAY DEN DEW DID DIE DIG DIM DIN DIP DOC DOG DOT DRY DUB DUE DUG DUO DYE
+        EAR EAT EEL EGG EGO ELF ELK ELM EMU END ERA EVE EWE EYE
+        FAD FAN FAR FAT FED FEE FEW FIG FIN FIR FIT FIX FLU FLY FOE FOG FOR FOX FRY FUN FUR
+        GAP GAS GEL GEM GET GIG GIN GOD GOT GUM GUN GUT GUY GYM
+        HAD HAM HAS HAT HAY HEM HEN HER HEW HEX HEY HID HIM HIP HIS HIT HOG HOP HOT HOW HUB HUE HUG HUM HUT
+        ICE ICY ILL IMP INK INN ION IRE IVY
+        JAB JAM JAR JAW JAY JET JIG JOB JOG JOT JOY JUG
+        KEG KEN KEY KID KIN KIT
+        LAB LAD LAG LAP LAW LAY LED LEG LET LID LIE LIP LIT LOG LOT LOW
+        MAD MAN MAP MAT MAY MEN MET MID MIX MOB MOM MOP MOW MUD MUG
+        NAP NET NEW NIL NIP NOD NOR NOT NOW NUT
+        OAK OAR OAT ODD ODE OFF OFT OIL OLD ONE OPT ORB ORE OUR OUT OWE OWL OWN
+        PAD PAL PAN PAR PAT PAW PAY PEA PEG PEN PEP PER PET PIE PIG PIN PIT PLY POD POP POT POW PRO PRY PUB PUG PUN PUP PUT
+        RAG RAM RAN RAP RAT RAW RAY RED REF RIB RID RIG RIM RIP ROB ROD ROT ROW RUB RUG RUM RUN RUT RYE
+        SAD SAG SAP SAT SAW SAY SEA SEE SET SEW SHE SHY SIN SIP SIR SIT SIX SKI SKY SLY SOB SOD SON SOW SOY SPA SPY SUB SUE SUM SUN SUP
+        TAB TAG TAN TAP TAR TAX TEA TEE TEN THE THY TIC TIE TIN TIP TOE TON TOO TOP TOW TOY TRY TUB TUG TWO
+        URN USE VAN VAT VET VIA VOW WAG WAR WAS WAX WAY WEB WED WEE WET WHO WHY WIG WIN WIT WOE WOK WON WOO WOW
+        YAK YAM YAP YAW YES YET YEW YOU ZAP ZEN ZIG ZIT ZOO
+        ABLE ACHE ACID ACRE AGED AIDE AIRY ALLY ALOE ALSO AMID ANTE ANTI APEX ARCH AREA ARMY ARTS ARTY ATOM ATOP AUNT AURA AUTO AVID AWAY AXIS
+        BABY BACK BAIL BAIT BAKE BALD BALL BALM BAND BANG BANK BARE BARK BARN BASE BATH BEAD BEAK BEAM BEAN BEAR BEAT BECK BEEF BEEN BEER BELL BELT BEND BENT BEST BIKE BILL BIND BIRD BITE BLOW BLUE BLUR BOAT BODY BOIL BOLD BOLT BOMB BOND BONE BOOK BOOM BOOT BORE BORN BOSS BOTH BOWL BRAG BRED BREW BRIM BROW BUCK BULB BULK BULL BUMP BURN BURY BUSH BUSY BYTE
+        CAFE CAGE CAKE CALF CALL CALM CAME CAMP CANE CAPE CARD CARE CART CASE CASH CAST CAVE CELL CENT CHAT CHEF CHIN CHIP CHOP CITE CITY CLAD CLAM CLAN CLAP CLAW CLAY CLIP CLUB CLUE COAL COAT CODE COIL COIN COLD COLT COMB COME CONE COOK COOL COPE COPY CORD CORE CORK CORN COST COZY CRAB CREW CROP CROW CUBE CULT CURB CURE CURL CUTE CYAN
+        DAME DAMP DARE DARK DARN DART DASH DATA DATE DAWN DAYS DEAD DEAF DEAL DEAR DEBT DECK DEED DEEP DEER DEMO DENT DENY DESK DIAL DICE DIET DIME DINE DIRE DIRT DISC DISH DISK DIVE DOCK DOES DOLL DOME DONE DOOM DOOR DOSE DOVE DOWN DOZE DRAG DRAW DREW DRIP DROP DRUM DUAL DUCK DUEL DUET DUKE DULL DUNE DUSK DUST DUTY
+        EACH EARL EARN EASE EAST EASY ECHO EDGE EDIT ELSE EMIT ENVY EPIC EVEN EVER EVIL EXAM EXIT EYED
+        FACE FACT FADE FAIL FAIR FAKE FALL FAME FARE FARM FAST FATE FEAR FEAT FEED FEEL FEET FELL FELT FERN FEST FILE FILL FILM FIND FINE FIRE FIRM FISH FIST FIVE FLAG FLAP FLAT FLAW FLEA FLED FLEW FLIP FLOW FOAM FOIL FOLD FOLK FOND FOOD FOOL FOOT FORD FORK FORM FORT FOUL FOUR FREE FROG FROM FUEL FULL FUME FUND FURY FUSE
+        GAIN GALA GALE GAME GANG GATE GAVE GAZE GEAR GENE GIFT GIRL GIVE GLAD GLOW GLUE GOAL GOAT GOLD GOLF GONE GOOD GOWN GRAB GRAY GREW GRID GRIM GRIN GRIP GROW GULF GUST
+        HACK HAIL HAIR HALF HALL HALO HALT HAND HANG HARD HARE HARM HARP HATE HAUL HAVE HAWK HAZE HAZY HEAD HEAL HEAP HEAR HEAT HEED HEEL HELD HELL HELM HELP HERB HERD HERE HERO HIDE HIGH HIKE HILL HINT HIRE HOLD HOLE HOLY HOME HOOK HOPE HORN HOSE HOST HOUR HUGE HULL HUNT HURT HYMN
+        ICED ICON IDEA IDLE IDOL INCH INTO IRON ISLE ITEM
+        JACK JADE JAIL JAZZ JERK JEST JOIN JOKE JUMP JUNE JURY JUST
+        KEEN KEEP KELP KEPT KICK KILL KIND KING KISS KITE KNEE KNEW KNIT KNOT KNOW
+        LACE LACK LADY LAID LAKE LAMB LAMP LAND LANE LARK LAST LATE LAVA LAWN LEAD LEAF LEAK LEAN LEAP LEFT LEND LENS LESS LIAR LICK LIFE LIFT LIKE LILY LIMB LIME LINE LINK LION LIST LIVE LOAD LOAF LOAN LOCK LOFT LOGO LONE LONG LOOK LOOP LORD LORE LOSE LOSS LOST LOUD LOVE LUCK LUMP LUNG LURE LUSH
+        MADE MAID MAIL MAIN MAKE MALE MALL MANE MANY MARK MARS MASK MASS MAST MATE MATH MAZE MEAL MEAN MEAT MEET MELT MEMO MEND MENU MERE MESH MESS MILD MILE MILK MILL MIND MINE MINT MISS MIST MODE MOLD MOOD MOON MORE MOSS MOST MOTH MOVE MUCH MUSE MUST MYTH
+        NAIL NAME NAVY NEAR NEAT NECK NEED NEST NEWS NEXT NICE NINE NODE NONE NOON NORM NOSE NOTE NOUN
+        OATH OBEY ODDS OMEN ONCE ONLY ONTO OPAL OPEN ORAL OVEN OVER
+        PACE PACK PAGE PAID PAIN PAIR PALE PALM PANE PARK PART PASS PAST PATH PEAK PEAR PEEL PEER PICK PIER PIKE PILE PILL PINE PINK PIPE PLAN PLAY PLEA PLOT PLOW PLUG PLUM PLUS POEM POET POLE POLL POND POOL POOR PORK PORT POSE POST POUR PRAY PREY PULL PUMP PURE PUSH
+        QUIT QUIZ RACE RACK RAGE RAID RAIL RAIN RAKE RANG RANK RARE RATE READ REAL REAR REED REEF REEL RELY RENT REST RICE RICH RIDE RING RIPE RISE RISK ROAD ROAM ROAR ROBE ROCK RODE ROLE ROLL ROOF ROOM ROOT ROPE ROSE RUBY RUDE RUIN RULE RUSH RUST
+        SAFE SAGE SAID SAIL SAKE SALE SALT SAME SAND SANE SANG SANK SAVE SCAN SCAR SEAL SEAM SEAT SEED SEEK SEEM SEEN SELF SELL SEND SENT SHED SHIN SHIP SHOE SHOP SHOT SHOW SHUT SICK SIDE SIGH SIGN SILK SING SINK SITE SIZE SKIN SKIP SLAM SLAP SLED SLID SLIM SLIP SLOT SLOW SNAP SNOW SOAK SOAP SOAR SOCK SOFT SOIL SOLD SOLE SOME SONG SOON SORE SORT SOUL SOUP SOUR SPAN SPIN SPOT STAR STAY STEM STEP STEW STIR STOP SUCH SUIT SUNG SUNK SURE SURF SWAN SWAP SWIM
+        TAIL TAKE TALE TALK TALL TAME TANK TAPE TASK TEAM TEAR TELL TEND TENT TERM TEST TEXT THAN THAT THEM THEN THEY THIN THIS THUS TIDE TIDY TIED TIER TILE TILL TILT TIME TINY TIRE TOAD TOLD TOLL TOMB TONE TOOK TOOL TOPS TORN TOUR TOWN TRAP TRAY TREE TREK TRIM TRIO TRIP TRUE TUBE TUCK TUNA TUNE TURN TWIN TYPE
+        UNIT UPON URGE USED USER VAIN VALE VANE VARY VASE VAST VEIL VEIN VENT VERB VERY VEST VIEW VINE VOID VOTE
+        WADE WAGE WAIT WAKE WALK WALL WAND WANT WARD WARM WARN WASH WASP WAVE WEAK WEAR WEED WEEK WEEP WELL WENT WERE WEST WHAT WHEN WHIP WIDE WIFE WILD WILL WIND WINE WING WIPE WIRE WISE WISH WITH WOLF WOOD WOOL WORD WORE WORK WORM WORN WRAP
+        YARD YARN YEAR YELL YOUR ZEAL ZERO ZONE ZOOM
+        ABOUT ABOVE ACORN ACTOR ADAPT ADMIT ADOPT ADULT AFTER AGAIN AGENT AGREE AHEAD ALARM ALBUM ALERT ALIEN ALIGN ALIKE ALIVE ALLOW ALONE ALONG ALTER AMBER ANGEL ANGER ANGLE ANGRY APART APPLE APPLY ARENA ARGUE ARISE ARMOR AROMA ARRAY ARROW ASIDE ASSET ATLAS AUDIO AUDIT AVOID AWAKE AWARD AWARE
+        BADGE BASIC BEACH BEAST BEGIN BEING BELLY BELOW BENCH BERRY BIRTH BLACK BLADE BLAME BLANK BLAST BLAZE BLEED BLEND BLESS BLIND BLINK BLOCK BLOOD BLOOM BLOWN BOARD BOOST BOOTH BOUND BRAIN BRAND BRAVE BREAD BREAK BREED BRICK BRIDE BRIEF BRING BROAD BROKE BROOK BROWN BRUSH BUILD BUILT BUNCH BURST
+        CABIN CABLE CAMEL CANAL CANDY CARRY CATCH CAUSE CEDAR CHAIN CHAIR CHALK CHAMP CHARM CHART CHASE CHEAP CHECK CHEEK CHEER CHESS CHEST CHIEF CHILD CHILL CHINA CHOIR CHORD CHOSE CIVIL CLAIM CLASS CLEAN CLEAR CLICK CLIFF CLIMB CLOCK CLOSE CLOTH CLOUD CLOWN COACH COAST COLOR COMET CORAL COUCH COUNT COURT COVER CRACK CRAFT CRANE CRASH CRAZY CREAM CREEK CRISP CROSS CROWD CROWN CRUSH CRUST CURVE CYCLE
+        DAILY DANCE DEALT DEATH DELAY DEPTH DIARY DIRTY DOUBT DOZEN DRAFT DRAIN DRAMA DRAWN DREAM DRESS DRIFT DRINK DRIVE DROWN DRUNK
+        EAGER EAGLE EARLY EARTH EIGHT ELBOW ELDER ELECT EMPTY ENEMY ENJOY ENTER ENTRY EQUAL ERROR EVENT EVERY EXACT EXIST EXTRA
+        FAIRY FAITH FALSE FANCY FAULT FEAST FENCE FERRY FEVER FIELD FIFTH FIFTY FIGHT FINAL FIRST FLAME FLASH FLEET FLESH FLOAT FLOOD FLOOR FLORA FLOUR FLUID FOCUS FORCE FORTH FOUND FRAME FRANK FRESH FRONT FROST FRUIT FUNNY
+        GHOST GIANT GIVEN GLASS GLEAM GLIDE GLOBE GLORY GRACE GRADE GRAIN GRAND GRANT GRAPE GRASS GRAVE GREAT GREEN GREET GROUP GROVE GUARD GUESS GUEST GUIDE
+        HABIT HAPPY HARSH HEART HEAVY HELLO HONEY HORSE HOTEL HOUSE HUMAN HUMOR HURRY
+        IDEAL IMAGE INDEX INNER INPUT ISSUE IVORY
+        JEWEL JOINT JUDGE JUICE
+        KNIFE KNOCK KNOWN
+        LABEL LABOR LARGE LASER LATER LAUGH LAYER LEARN LEAST LEAVE LEGAL LEMON LEVEL LIGHT LIMIT LOCAL LOGIC LOOSE LOVER LOWER LUCKY LUNAR LUNCH
+        MAGIC MAJOR MAKER MARCH MATCH MAYBE MAYOR MEDAL MELON MERCY METAL METER MIGHT MINOR MODEL MONEY MONTH MORAL MOTOR MOUNT MOUSE MOUTH MOVIE MUSIC
+        NERVE NEVER NIGHT NOBLE NOISE NORTH NOVEL NURSE
+        OCEAN OFFER OFTEN OLIVE ONION ORBIT ORDER OTHER OUTER OWNER
+        PAINT PANEL PAPER PARTY PATCH PAUSE PEACE PEACH PEARL PEDAL PENNY PHASE PHONE PHOTO PIANO PIECE PILOT PITCH PLACE PLAIN PLANE PLANT PLATE POINT POUND POWER PRESS PRICE PRIDE PRIME PRINT PRIZE PROOF PROUD PULSE
+        QUEEN QUICK QUIET QUILT
+        RADIO RAISE RANGE RAPID RATIO REACH READY REALM REBEL REFER RELAX REPLY RHYME RIDER RIDGE RIGHT RIVER ROAST ROBOT ROCKY ROUGH ROUND ROUTE ROYAL RURAL
+        SAINT SALAD SCALE SCENE SCENT SCOPE SCORE SCOUT SENSE SERVE SEVEN SHADE SHADOW SHAKE SHALL SHAPE SHARE SHARP SHEEP SHEET SHELF SHELL SHIFT SHINE SHIRT SHOCK SHOOT SHORE SHORT SHOUT SHOWN SIGHT SILENT SILVER SIMPLE SINCE SIXTH SKILL SLEEP SLICE SLIDE SLOPE SMALL SMART SMILE SMOKE SMOOTH SNAKE SOLAR SOLID SOLVE SOUND SOUTH SPACE SPARE SPARK SPEAK SPEED SPELL SPEND SPICE SPIKE SPIRIT SPLIT SPOON SPORT SPRAY SPRING SQUARE STACK STAGE STAIN STAIR STAMP STAND STARE START STATE STEAM STEEL STEEP STICK STILL STONE STOOD STORE STORM STORY STREAM STREET STRING STRONG STUDY STYLE SUGAR SUITE SUMMER SUNNY SUPER SWEET SWIFT SWING
+        TABLE TASTE TEACH THANK THEME THERE THICK THING THINK THIRD THORN THREE THROW TIGHT TITLE TODAY TOKEN TOTAL TOUCH TOUGH TOWER TRACE TRACK TRADE TRAIL TRAIN TREAT TREND TRIAL TRIBE TRICK TRUCK TRULY TRUST TRUTH TWICE
+        UNCLE UNDER UNION UNITY UNTIL UPPER URBAN USUAL
+        VALID VALUE VAPOR VAULT VIDEO VISIT VITAL VIVID VOICE
+        WAGON WATCH WATER WHEEL WHERE WHICH WHILE WHITE WHOLE WHOSE WOMAN WORLD WORRY WORTH WOULD WRITE WRONG
+        YACHT YIELD YOUNG YOUTH ZEBRA
+        ACROSS ACTION ADVICE AFFAIR ALWAYS AMOUNT ANIMAL ANSWER ANYONE AROUND ARRIVE ARTIST ASPECT ATTACK AUTHOR
+        BEFORE BEHIND BELIEF BETTER BEYOND BORDER BOTTLE BOTTOM BRANCH BREATH BRIDGE BRIGHT BROKEN BUDGET BUTTON
+        CAMERA CANCER CARBON CASTLE CENTER CHANCE CHANGE CHARGE CHOICE CHOOSE CHURCH CIRCLE CLIENT CLOSED COFFEE COLUMN COMBAT COMMON COPPER CORNER COUNTY COUPLE COURSE CREATE CREDIT CRISIS CUSTOM
+        DAMAGE DANGER DEALER DEBATE DECADE DECIDE DEFEAT DEFEND DEGREE DEMAND DESIGN DESIRE DETAIL DEVICE DINNER DIRECT DOCTOR DOUBLE DRIVER DURING
+        EASILY EDITOR EFFECT EFFORT EIGHTH EMPIRE ENERGY ENGINE ENOUGH ENTIRE ESTATE ETHNIC EXCEPT EXCESS EXPAND EXPECT EXPERT EXTENT
+        FABRIC FACTOR FAMILY FAMOUS FATHER FELLOW FIGURE FINGER FINISH FLIGHT FLOWER FOLLOW FORGET FORMAL FORMAT FORMER FOSTER FRIEND FUTURE
+        GARDEN GATHER GLOBAL GOLDEN GROUND GROWTH
+        HANDLE HEALTH HEIGHT HIDDEN HOLDER HONEST
+        IMPACT IMPORT INCOME INDEED INJURY INSIDE INTEND ISLAND
+        JUNIOR
+        KEEPER
+        LAUNCH LAWYER LEADER LEAGUE LESSON LETTER LIGHTS LIQUID LISTEN LITTLE LIVING
+        MAKER MANAGE MANNER MARKET MASTER MATTER MEDIUM MEMBER MEMORY MENTAL MERELY METHOD MIDDLE MINUTE MIRROR MOBILE MODERN MOMENT MOTHER MOTION MURDER MUSEUM
+        NATION NATIVE NATURE NEARBY NEEDLE NOTICE NUMBER
+        OBJECT OBTAIN OFFICE ONLINE OPTION ORANGE ORIGIN OUTPUT
+        PALACE PARENT PEOPLE PERIOD PERMIT PERSON PLANET PLAYER PLEASE POCKET POLICE POLICY PREFER PRINCE PRISON PROFIT PROPER PUBLIC
+        RANDOM RATHER REASON RECORD REDUCE REFORM REGARD REGION RELIEF REMAIN REMOTE REMOVE REPAIR REPEAT REPORT RESCUE RESULT RETAIL RETURN REVEAL REVIEW REWARD RISING
+        SAFETY SAMPLE SCHEME SCHOOL SCREEN SEARCH SEASON SECOND SECRET SECTOR SELECT SENIOR SERIES SETTLE SEVERE SHADOW SHOULD SIGNAL SILVER SIMPLE SINGLE SISTER SLIGHT SMOOTH SOCIAL SOURCE SPEECH SPIRIT SPREAD SPRING SQUARE STABLE STATUS STEADY STREAM STREET STRENGTH STRIKE STRING STUDIO SUBMIT SUDDEN SUMMER SUPPLY SURELY SURVEY SWITCH SYMBOL SYSTEM
+        TARGET TEMPLE THEORY THIRTY THREAT TICKET TIMBER TISSUE TOWARD TRAVEL TREATY
+        UNIQUE UNITED UNLESS UPDATE USEFUL
+        VALLEY VISUAL VOLUME
+        WEALTH WEATHER WINDOW WINTER WONDER WORKER WRITER YELLOW
+      `;
+
+      const DICTIONARY = new Set(RAW_WORDS.trim().split(/\s+/));
+
+      function isValidEnglishWord(word) {
+        if (!word || word.length < 3 || word.length > 8) return false;
+        if (DICTIONARY.has(word)) return true;
+        // Morphological inflection checks (-S, -ES, -ED, -ING, -ER, -LY)
+        const stems = [];
+        if (word.endsWith('S') && word.length >= 4) stems.push(word.slice(0, -1));
+        if (word.endsWith('ES') && word.length >= 5) stems.push(word.slice(0, -2));
+        if (word.endsWith('ED') && word.length >= 5) stems.push(word.slice(0, -2), word.slice(0, -1));
+        if (word.endsWith('ING') && word.length >= 6) stems.push(word.slice(0, -3), word.slice(0, -3) + 'E');
+        if (word.endsWith('ER') && word.length >= 5) stems.push(word.slice(0, -2), word.slice(0, -1));
+        if (word.endsWith('LY') && word.length >= 5) stems.push(word.slice(0, -2));
+        return stems.some(s => DICTIONARY.has(s));
+      }
+
+      // Featured Puzzle Cross-Letter Layout (inspired directly by the Bauhaus poster)
+      // Coordinates on an 8x3 grid (row 0..2, col 0..7)
+      const FEATURED_CELLS = [
+        { r: 0, c: 2, char: 'C', accent: 'blue' },
+        { r: 0, c: 6, char: 'D', accent: 'none' },
+        { r: 1, c: 3, char: 'L', accent: 'none' },
+        { r: 1, c: 6, char: 'O', accent: 'none' },
+        { r: 2, c: 0, char: 'W', accent: 'none' },
+        { r: 2, c: 1, char: 'O', accent: 'none' },
+        { r: 2, c: 2, char: 'R', accent: 'none' },
+        { r: 2, c: 3, char: 'D', accent: 'none' },
+        { r: 2, c: 4, char: 'S', accent: 'none' },
+        { r: 2, c: 5, char: 'U', accent: 'yellow' },
+        { r: 2, c: 6, char: 'N', accent: 'none' },
+        { r: 2, c: 7, char: 'G', accent: 'none' }
+      ];
+
+      const LETTER_BAG = 'AAAAAAAAEEEEEEEEIIIIIIOOOOOOOUUUUBBBCCCDDDFFGGGHHHJJKKLLLLMMMNNNNPPQRRRRRSSSSSSTTTTTTVVWWXYYZ';
+
+      // =======================================================================
+      // 3. SYNTHESIZED BAUHAUS MARIMBA & PERCUSSIVE WEB AUDIO ENGINE
+      // =======================================================================
+      class BauhausAudio {
+        constructor() {
+          this.ctx = null;
+          this.muted = false;
+          this.windNode = null;
+          this.windGain = null;
+          this.windFilter = null;
+        }
+
+        init() {
+          if (!this.ctx) {
+            const AudioCtx = window.AudioContext || window.webkitAudioContext;
+            if (AudioCtx) {
+              this.ctx = new AudioCtx();
+              this._initWindSynth();
+            }
+          }
+          if (this.ctx && this.ctx.state === 'suspended') {
+            this.ctx.resume().catch(() => {});
+          }
+        }
+
+        _initWindSynth() {
+          if (!this.ctx || this.windNode) return;
+          const len = this.ctx.sampleRate * 2;
+          const buf = this.ctx.createBuffer(1, len, this.ctx.sampleRate);
+          const data = buf.getChannelData(0);
+          let last = 0;
+          for (let i = 0; i < len; i++) {
+            const white = Math.random() * 2 - 1;
+            data[i] = (last + 0.04 * white) / 1.04;
+            last = data[i];
+            data[i] *= 2.3;
+          }
+          const src = this.ctx.createBufferSource();
+          src.buffer = buf;
+          src.loop = true;
+
+          const filter = this.ctx.createBiquadFilter();
+          filter.type = 'bandpass';
+          filter.frequency.value = 340;
+          filter.Q.value = 1.6;
+
+          const gain = this.ctx.createGain();
+          gain.gain.value = 0;
+
+          src.connect(filter);
+          filter.connect(gain);
+          gain.connect(this.ctx.destination);
+          src.start();
+
+          this.windNode = src;
+          this.windFilter = filter;
+          this.windGain = gain;
+        }
+
+        setWindIntensity(ratio, active) {
+          if (!this.ctx || !this.windGain || !this.windFilter) return;
+          const now = this.ctx.currentTime;
+          if (this.muted || !active) {
+            this.windGain.gain.setTargetAtTime(0, now, 0.12);
+            return;
+          }
+          const clamped = Math.min(1, Math.max(0.08, ratio));
+          this.windGain.gain.setTargetAtTime(clamped * 0.055, now, 0.1);
+          this.windFilter.frequency.setTargetAtTime(250 + clamped * 600, now, 0.1);
+        }
+
+        toggleMute() {
+          this.muted = !this.muted;
+          if (!this.muted) {
+            this.init();
+            this.playMarimbaNote(523.25);
+          } else if (this.windGain && this.ctx) {
+            this.windGain.gain.setTargetAtTime(0, this.ctx.currentTime, 0.05);
+          }
+          return this.muted;
+        }
+
+        playMarimbaNote(freq = 523.25, dur = 0.12) {
+          if (this.muted) return;
+          this.init();
+          if (!this.ctx) return;
+          const now = this.ctx.currentTime;
+
+          // Fundamental + 4th harmonic overtone (classic marimba resonance)
+          [1, 4].forEach((mult, idx) => {
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(freq * mult, now);
+            gain.gain.setValueAtTime(0.001, now);
+            gain.gain.linearRampToValueAtTime(idx === 0 ? 0.14 : 0.035, now + 0.006);
+            gain.gain.exponentialRampToValueAtTime(0.0008, now + (idx === 0 ? dur : dur * 0.35));
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(now);
+            osc.stop(now + dur + 0.02);
+          });
+        }
+
+        playWeatherSwitch(weather) {
+          if (this.muted) return;
+          this.init();
+          if (!this.ctx) return;
+          const motifs = {
+            rain: [392.0, 329.63],
+            snow: [659.25, 880.0],
+            wind: [293.66, 440.0],
+            sun:  [523.25, 659.25, 783.99]
+          }[weather] || [440, 554];
+
+          motifs.forEach((f, i) => {
+            setTimeout(() => this.playMarimbaNote(f, 0.16), i * 55);
+          });
+        }
+
+        playVictoryFanfare(wordLen = 4) {
+          if (this.muted) return;
+          this.init();
+          if (!this.ctx) return;
+          const notes = [523.25, 659.25, 783.99, 1046.5, 1318.5].slice(0, Math.min(5, Math.max(3, wordLen)));
+          notes.forEach((f, idx) => {
+            setTimeout(() => this.playMarimbaNote(f, 0.24), idx * 55);
+          });
+        }
+
+        playReject() {
+          if (this.muted) return;
+          this.init();
+          if (!this.ctx) return;
+          const now = this.ctx.currentTime;
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'square';
+          osc.frequency.setValueAtTime(165, now);
+          osc.frequency.linearRampToValueAtTime(125, now + 0.14);
+          gain.gain.setValueAtTime(0.001, now);
+          gain.gain.linearRampToValueAtTime(0.055, now + 0.012);
+          gain.gain.exponentialRampToValueAtTime(0.0008, now + 0.16);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now);
+          osc.stop(now + 0.18);
+        }
+      }
+
+      // =======================================================================
+      // 4. APPLICATION & GAME STATE
+      // =======================================================================
+      const audio = new BauhausAudio();
+      const canvas = document.getElementById('sky-canvas');
+      const ctx = canvas.getContext('2d');
+
+      const WEATHER_TYPES = ['rain', 'snow', 'wind', 'sun'];
+
+      // DOM elements
+      const lobbyScreen = document.getElementById('lobby-screen');
+      const gameScreen = document.getElementById('game-screen');
+      const lobbyPlayBtn = document.getElementById('lobby-play-btn');
+      const lobbySettingsBtn = document.getElementById('lobby-settings-btn');
+      const lobbyDailyBtn = document.getElementById('lobby-daily-btn');
+      const emblemCycleBtn = document.getElementById('emblem-cycle-btn');
+      const emblemSunGroup = document.getElementById('emblem-sun-group');
+      const emblemCloudGroup = document.getElementById('emblem-cloud-group');
+      const emblemRainLines = document.getElementById('emblem-rain-lines');
+      const emblemSnowMarks = document.getElementById('emblem-snow-marks');
+      const emblemWindGroup = document.getElementById('emblem-wind-group');
+      const featuredPuzzleGrid = document.getElementById('featured-puzzle-grid');
+      const featuredWordStatus = document.getElementById('featured-word-status');
+      const featuredClearBtn = document.getElementById('featured-clear-btn');
+
+      const gameLobbyBtn = document.getElementById('game-lobby-btn');
+      const gameModeBadge = document.getElementById('game-mode-badge');
+      const hudScore = document.getElementById('hud-score');
+      const hudWords = document.getElementById('hud-words');
+      const hudGoalLabel = document.getElementById('hud-goal-label');
+      const hudGoalVal = document.getElementById('hud-goal-val');
+      const hudWeatherPill = document.getElementById('hud-weather-pill');
+      const hudWeatherText = document.getElementById('hud-weather-text');
+      const gameSoundBtn = document.getElementById('game-sound-btn');
+      const soundIcon = document.getElementById('sound-icon');
+      const gameToast = document.getElementById('game-toast');
+
+      const wordTrayBox = document.getElementById('word-tray-box');
+      const trayClearBtn = document.getElementById('tray-clear-btn');
+      const traySlots = document.getElementById('tray-slots');
+      const trayPlaceholder = document.getElementById('tray-placeholder');
+      const trayShuffleBtn = document.getElementById('tray-shuffle-btn');
+      const traySubmitBtn = document.getElementById('tray-submit-btn');
+
+      const modalOverlay = document.getElementById('modal-overlay');
+      const modalHeading = document.getElementById('modal-heading');
+      const modalContent = document.getElementById('modal-content');
+      const modalCloseBtn = document.getElementById('modal-close-btn');
+
+      const lobbyWeatherCells = Array.from(document.querySelectorAll('.lobby-weather-cell'));
+      const gameWeatherCells = Array.from(document.querySelectorAll('.game-weather-cell'));
+      const footerNavBtns = Array.from(document.querySelectorAll('.footer-nav-btn'));
+
+      const state = {
+        screen: 'lobby', // 'lobby' | 'play'
+        mode: 'classic', // 'classic' | 'daily'
+        paletteId: 'classic1923',
+        weather: 'rain',
+        // Settings
+        minWordLen: 3,
+        autoSubmit: false,
+        // Stats & Progression
+        score: 0,
+        wordsFound: [],
+        combo: 1,
+        comboTimer: 0,
+        bestCombo: 1,
+        level: 1,
+        levelWords: 0,
+        levelGoal: 3,
+        dailyTimer: 90,
+        dailyTargetWords: 5,
+        // Featured lobby mini-puzzle state
+        featuredSelected: [],
+        featuredSolvedWords: new Set(),
+        // Canvas & Physics
+        width: 800,
+        height: 600,
+        dpr: Math.min(window.devicePixelRatio || 1, 2),
+        clouds: [],
+        letters: [],
+        selectedIds: [],
+        weatherParticles: [],
+        geometricBursts: [],
+        floatingPopups: [],
+        windVec: { x: 220, y: -15 },
+        isSwipingWind: false,
+        isDraggingLetters: false,
+        swipeStart: { x: 0, y: 0 },
+        swipeCurr: { x: 0, y: 0 },
+        spawnTimer: 0,
+        lastFrame: 0,
+        nextId: 1,
+        toastTimer: null
+      };
+
+      function pal() {
+        return PALETTES[state.paletteId];
+      }
+
+      function applyPalette(paletteId) {
+        const p = PALETTES[paletteId];
+        if (!p) return;
+        state.paletteId = paletteId;
+
+        const root = document.documentElement;
+        root.style.setProperty('--bg-paper', p.paper);
+        root.style.setProperty('--ink', p.ink);
+        root.style.setProperty('--red', p.red);
+        root.style.setProperty('--blue', p.blue);
+        root.style.setProperty('--yellow', p.yellow);
+
+        lobbyPlayBtn.style.backgroundColor = p.red;
+        lobbySettingsBtn.style.backgroundColor = p.yellow;
+        lobbyDailyBtn.style.backgroundColor = p.blue;
+
+        syncWeatherUI();
+        renderTray();
+      }
+
+      function showGameToast(msg, ms = 1700) {
+        gameToast.textContent = msg;
+        gameToast.classList.remove('opacity-0');
+        gameToast.classList.add('opacity-100');
+        if (state.toastTimer) clearTimeout(state.toastTimer);
+        state.toastTimer = setTimeout(() => {
+          gameToast.classList.remove('opacity-100');
+          gameToast.classList.add('opacity-0');
+        }, ms);
+      }
+
+      // =======================================================================
+      // 5. LOBBY INTERACTIVE FEATURED PUZZLE & EMBLEM SYNC
+      // =======================================================================
+      function buildFeaturedPuzzleGrid() {
+        featuredPuzzleGrid.innerHTML = '';
+        const p = pal();
+
+        // 3 rows x 8 cols matrix
+        for (let r = 0; r < 3; r++) {
+          for (let c = 0; c < 8; c++) {
+            const cellData = FEATURED_CELLS.find(item => item.r === r && item.c === c);
+            if (!cellData) {
+              const spacer = document.createElement('div');
+              spacer.className = 'w-7 h-7 sm:w-8 sm:h-8';
+              featuredPuzzleGrid.appendChild(spacer);
+              continue;
+            }
+
+            const idx = FEATURED_CELLS.indexOf(cellData);
+            const isSelected = state.featuredSelected.includes(idx);
+
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.textContent = cellData.char;
+            btn.className = 'bauhaus-flat-btn w-7 h-7 sm:w-8 sm:h-8 border-[2.5px] font-display font-black text-xs sm:text-sm flex items-center justify-center cursor-pointer';
+            btn.style.borderColor = p.ink;
+
+            if (isSelected) {
+              btn.style.backgroundColor = p.red;
+              btn.style.color = '#F4F1DE';
+            } else {
+              btn.style.backgroundColor = p.paper;
+              btn.style.color =
+                cellData.accent === 'blue' ? p.blue :
+                cellData.accent === 'yellow' ? '#D97706' : p.ink;
+            }
+
+            btn.addEventListener('click', () => {
+              audio.init();
+              const existing = state.featuredSelected.indexOf(idx);
+              if (existing !== -1) {
+                state.featuredSelected.splice(existing, 1);
+                audio.playMarimbaNote(392, 0.08);
+              } else {
+                state.featuredSelected.push(idx);
+                audio.playMarimbaNote(440 + state.featuredSelected.length * 55, 0.09);
+              }
+
+              const currentWord = state.featuredSelected.map(i => FEATURED_CELLS[i].char).join('');
+              if (currentWord.length >= 3 && isValidEnglishWord(currentWord)) {
+                state.featuredSolvedWords.add(currentWord);
+                audio.playVictoryFanfare(currentWord.length);
+                featuredWordStatus.innerHTML = `<span style="color: ${p.red};">★ SPELLED "${currentWord}"!</span> (${state.featuredSolvedWords.size} FOUND)`;
+                state.featuredSelected = [];
+              } else if (currentWord.length > 0) {
+                featuredWordStatus.innerHTML = `FORMING: <strong style="color: ${p.blue};">${currentWord}</strong>`;
+              } else {
+                featuredWordStatus.innerHTML = `TODAY'S CLOUD: <strong style="color: ${p.blue};">C-L-O-U-D</strong>`;
+              }
+
+              buildFeaturedPuzzleGrid();
+            });
+
+            featuredPuzzleGrid.appendChild(btn);
+          }
+        }
+      }
+
+      function syncWeatherUI() {
+        const p = pal();
+        const w = state.weather;
+
+        // 1. Update Lobby 4-Box Weather Select Strip
+        lobbyWeatherCells.forEach(cell => {
+          const cw = cell.dataset.weather;
+          const active = cw === w;
+          if (active) {
+            if (cw === 'rain') {
+              cell.style.backgroundColor = p.blue;
+              cell.style.color = '#F4F1DE';
+            } else if (cw === 'sun') {
+              cell.style.backgroundColor = p.yellow;
+              cell.style.color = p.ink;
+            } else if (cw === 'wind') {
+              cell.style.backgroundColor = p.red;
+              cell.style.color = '#F4F1DE';
+            } else {
+              cell.style.backgroundColor = p.ink;
+              cell.style.color = p.paper;
+            }
+          } else {
+            cell.style.backgroundColor = p.paper;
+            cell.style.color = p.ink;
+          }
+        });
+
+        // 2. Update Central Bauhaus Emblem Emphasis
+        if (emblemCloudGroup && emblemSunGroup) {
+          emblemCloudGroup.style.transform = (w === 'rain' || w === 'snow') ? 'scale(1.05)' : 'scale(0.98)';
+          emblemSunGroup.style.transform = w === 'sun' ? 'scale(1.08)' : 'scale(0.97)';
+          emblemRainLines.setAttribute('opacity', w === 'rain' ? '1' : '0.35');
+          emblemSnowMarks.setAttribute('opacity', w === 'snow' ? '1' : '0.15');
+          emblemWindGroup.setAttribute('opacity', w === 'wind' ? '1' : '0.45');
+        }
+
+        // 3. Update Gameplay 4-Box Weather Strip & Top HUD Pill
+        gameWeatherCells.forEach(cell => {
+          const cw = cell.dataset.weather;
+          const active = cw === w;
+          if (active) {
+            if (cw === 'rain') {
+              cell.style.backgroundColor = p.blue;
+              cell.style.color = '#F4F1DE';
+            } else if (cw === 'sun') {
+              cell.style.backgroundColor = p.yellow;
+              cell.style.color = p.ink;
+            } else if (cw === 'wind') {
+              cell.style.backgroundColor = p.red;
+              cell.style.color = '#F4F1DE';
+            } else {
+              cell.style.backgroundColor = p.ink;
+              cell.style.color = p.paper;
+            }
+          } else {
+            cell.style.backgroundColor = p.paper;
+            cell.style.color = p.ink;
+          }
+        });
+
+        hudWeatherText.textContent = w.toUpperCase();
+        if (w === 'rain') {
+          hudWeatherPill.style.backgroundColor = p.blue;
+          hudWeatherPill.style.color = '#F4F1DE';
+        } else if (w === 'sun') {
+          hudWeatherPill.style.backgroundColor = p.yellow;
+          hudWeatherPill.style.color = p.ink;
+        } else if (w === 'wind') {
+          hudWeatherPill.style.backgroundColor = p.red;
+          hudWeatherPill.style.color = '#F4F1DE';
+        } else {
+          hudWeatherPill.style.backgroundColor = p.ink;
+          hudWeatherPill.style.color = p.paper;
+        }
+      }
+
+      function setWeather(weatherType, silent = false) {
+        if (!WEATHER_TYPES.includes(weatherType)) return;
+        const changed = state.weather !== weatherType;
+        state.weather = weatherType;
+        syncWeatherUI();
+        state.clouds.forEach(c => { c.pulse = 1; });
+
+        if (changed && !silent) {
+          audio.playWeatherSwitch(weatherType);
+          if (state.screen === 'play') {
+            const notes = {
+              rain: 'RAIN — Tiles fall briskly with gravity',
+              snow: 'SNOW — Tiles drift gently & stack in columns',
+              wind: 'WIND — Swipe sky to steer horizontal breeze',
+              sun:  'SUN — Golden thermals lift tiles upward'
+            };
+            showGameToast(notes[weatherType], 1700);
+          }
+        }
+
+        audio.setWindIntensity(
+          Math.hypot(state.windVec.x, state.windVec.y) / 360,
+          weatherType === 'wind' && state.screen === 'play'
+        );
+      }
+
+      function cycleWeather() {
+        const idx = WEATHER_TYPES.indexOf(state.weather);
+        setWeather(WEATHER_TYPES[(idx + 1) % WEATHER_TYPES.length]);
+      }
+
+      // =======================================================================
+      // 6. SCREEN TRANSITIONS & MODALS (SETTINGS, PROFILE, STORE, QUIT)
+      // =======================================================================
+      function startGame(mode = 'classic') {
+        audio.init();
+        audio.playMarimbaNote(659.25, 0.14);
+        state.screen = 'play';
+        state.mode = mode;
+        state.score = 0;
+        state.wordsFound = [];
+        state.combo = 1;
+        state.comboTimer = 0;
+        state.level = 1;
+        state.levelWords = 0;
+        state.levelGoal = 3;
+        state.dailyTimer = 90;
+        state.selectedIds = [];
+
+        lobbyScreen.classList.add('hidden');
+        gameScreen.classList.remove('hidden');
+
+        if (mode === 'daily') {
+          gameModeBadge.textContent = 'DAILY CLOUD';
+          gameModeBadge.style.backgroundColor = pal().blue;
+          gameModeBadge.style.color = '#F4F1DE';
+          hudGoalLabel.textContent = 'TIME';
+        } else {
+          gameModeBadge.textContent = 'CLASSIC';
+          gameModeBadge.style.backgroundColor = pal().yellow;
+          gameModeBadge.style.color = pal().ink;
+          hudGoalLabel.textContent = 'GOAL';
+        }
+
+        resizeArenaCanvas();
+        seedArenaLetters(mode);
+        syncWeatherUI();
+        renderTray();
+        updateGameplayHUD();
+        showGameToast('Tap clouds or swipe sky to steer letters!', 2200);
+      }
+
+      function returnToLobby() {
+        audio.playMarimbaNote(440, 0.12);
+        state.screen = 'lobby';
+        state.selectedIds = [];
+        audio.setWindIntensity(0, false);
+        gameScreen.classList.add('hidden');
+        lobbyScreen.classList.remove('hidden');
+        syncWeatherUI();
+      }
+
+      function openBauhausModal(type) {
+        audio.init();
+        audio.playMarimbaNote(587.33, 0.1);
+        modalOverlay.classList.remove('hidden');
+        const p = pal();
+
+        if (type === 'settings') {
+          modalHeading.textContent = 'SETTINGS';
+          modalContent.innerHTML = `
+            <div class="border-[3px] p-3 flex items-center justify-between" style="border-color: ${p.ink};">
+              <div>
+                <div class="font-display font-extrabold uppercase">MARIMBA & WIND AUDIO</div>
+                <div class="text-xs opacity-75">Synthesized percussive feedback</div>
+              </div>
+              <button id="m-sound-btn" type="button" class="bauhaus-btn px-3 py-1.5 font-display font-extrabold text-xs uppercase cursor-pointer" style="background-color: ${audio.muted ? p.red : p.yellow}; color: ${audio.muted ? '#F4F1DE' : p.ink};">
+                ${audio.muted ? 'OFF' : 'ON'}
+              </button>
+            </div>
+
+            <div class="border-[3px] p-3 flex items-center justify-between" style="border-color: ${p.ink};">
+              <div>
+                <div class="font-display font-extrabold uppercase">MIN WORD LENGTH</div>
+                <div class="text-xs opacity-75">3 letters (Casual) or 4 letters (Pro)</div>
+              </div>
+              <button id="m-len-btn" type="button" class="bauhaus-btn px-3 py-1.5 font-display font-extrabold text-xs uppercase cursor-pointer" style="background-color: ${p.blue}; color: #F4F1DE;">
+                ${state.minWordLen} LETTERS
+              </button>
+            </div>
+
+            <div class="border-[3px] p-3 flex items-center justify-between" style="border-color: ${p.ink};">
+              <div>
+                <div class="font-display font-extrabold uppercase">AUTO-SUBMIT VALID</div>
+                <div class="text-xs opacity-75">Instantly spark valid 4+ letter words</div>
+              </div>
+              <button id="m-auto-btn" type="button" class="bauhaus-btn px-3 py-1.5 font-display font-extrabold text-xs uppercase cursor-pointer" style="background-color: ${state.autoSubmit ? p.yellow : p.paper}; color: ${p.ink};">
+                ${state.autoSubmit ? 'ENABLED' : 'MANUAL'}
+              </button>
+            </div>
+
+            <div class="border-[2px] p-2.5 text-xs font-bold leading-relaxed" style="border-color: ${p.ink};">
+              CONTROLS: Tap clouds or press <span class="underline">1–4</span> for Rain, Snow, Wind, Sun. Swipe sky to aim Wind. Tap/drag tiles + <span class="underline">Enter</span> to submit.
+            </div>
+          `;
+
+          document.getElementById('m-sound-btn').addEventListener('click', (e) => {
+            const muted = audio.toggleMute();
+            soundIcon.textContent = muted ? '🔇' : '🔊';
+            e.target.textContent = muted ? 'OFF' : 'ON';
+            e.target.style.backgroundColor = muted ? p.red : p.yellow;
+            e.target.style.color = muted ? '#F4F1DE' : p.ink;
+          });
+
+          document.getElementById('m-len-btn').addEventListener('click', (e) => {
+            state.minWordLen = state.minWordLen === 3 ? 4 : 3;
+            audio.playMarimbaNote(523.25, 0.09);
+            e.target.textContent = `${state.minWordLen} LETTERS`;
+          });
+
+          document.getElementById('m-auto-btn').addEventListener('click', (e) => {
+            state.autoSubmit = !state.autoSubmit;
+            audio.playMarimbaNote(659.25, 0.09);
+            e.target.textContent = state.autoSubmit ? 'ENABLED' : 'MANUAL';
+            e.target.style.backgroundColor = state.autoSubmit ? p.yellow : p.paper;
+          });
+        } else if (type === 'profile') {
+          modalHeading.textContent = 'PLAYER PROFILE';
+          const rank =
+            state.wordsFound.length >= 12 ? 'BAUHAUS MASTER' :
+            state.wordsFound.length >= 5 ? 'WEIMAR ARCHITECT' : 'APPRENTICE DESIGNER';
+          modalContent.innerHTML = `
+            <div class="border-[3px] p-3 flex items-center gap-3" style="border-color: ${p.ink};">
+              <div class="w-12 h-12 rounded-full border-[3px] flex items-center justify-center font-display font-black text-lg" style="border-color: ${p.ink}; background-color: ${p.yellow};">
+                W
+              </div>
+              <div>
+                <div class="font-display font-black text-base uppercase">${rank}</div>
+                <div class="text-xs font-bold opacity-75">Total Score: ${state.score.toLocaleString()} pts</div>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3 text-center">
+              <div class="border-[3px] p-3" style="border-color: ${p.ink};">
+                <div class="text-[10px] font-extrabold uppercase opacity-75">WORDS CRAFTED</div>
+                <div class="font-display font-black text-2xl" style="color: ${p.blue};">${state.wordsFound.length}</div>
+              </div>
+              <div class="border-[3px] p-3" style="border-color: ${p.ink};">
+                <div class="text-[10px] font-extrabold uppercase opacity-75">BEST COMBO</div>
+                <div class="font-display font-black text-2xl" style="color: ${p.red};">${state.bestCombo}×</div>
+              </div>
+            </div>
+          `;
+        } else if (type === 'store') {
+          modalHeading.textContent = 'PALETTE STORE';
+          modalContent.innerHTML = `
+            <div class="text-xs font-bold uppercase tracking-wider opacity-80">
+              Equip an archival Bauhaus poster palette live:
+            </div>
+            <div class="space-y-2.5">
+              ${Object.values(PALETTES).map(item => {
+                const active = item.id === state.paletteId;
+                return `
+                  <button type="button" data-pal="${item.id}" class="pal-select-btn bauhaus-btn w-full p-2.5 text-left flex items-center justify-between gap-2 cursor-pointer" style="background-color: ${item.paper}; color: ${item.ink}; border-color: ${item.ink};">
+                    <div>
+                      <div class="font-display font-black text-sm uppercase">${item.name}</div>
+                      <div class="text-[11px] font-medium opacity-80">${item.desc}</div>
+                    </div>
+                    <div class="flex items-center gap-1 shrink-0">
+                      <span class="w-4 h-4 border-2 border-black" style="background:${item.red}"></span>
+                      <span class="w-4 h-4 border-2 border-black" style="background:${item.blue}"></span>
+                      <span class="w-4 h-4 border-2 border-black" style="background:${item.yellow}"></span>
+                      <span class="ml-1 px-2 py-0.5 text-[10px] font-black uppercase border-2 border-black" style="background:${active ? item.ink : 'transparent'}; color:${active ? item.paper : item.ink};">
+                        ${active ? 'EQUIPPED' : 'USE'}
+                      </span>
+                    </div>
+                  </button>
+                `;
+              }).join('')}
+            </div>
+          `;
+
+          Array.from(document.querySelectorAll('.pal-select-btn')).forEach(btn => {
+            btn.addEventListener('click', () => {
+              applyPalette(btn.dataset.pal);
+              buildFeaturedPuzzleGrid();
+              audio.playVictoryFanfare(3);
+              openBauhausModal('store');
+            });
+          });
+        } else if (type === 'quit') {
+          modalHeading.textContent = 'POSTER CREDITS';
+          modalContent.innerHTML = `
+            <div class="border-[3px] p-3.5 space-y-2" style="border-color: ${p.ink};">
+              <div class="font-display font-black text-base uppercase">WORD WEATHER · BAUHAUS EDITION</div>
+              <p class="text-xs leading-relaxed">
+                Form follows weather: a kinetic typography puzzle inspired by 1923 Weimar geometric poster design.
+              </p>
+            </div>
+            <button id="m-reset-lobby-btn" type="button" class="bauhaus-btn w-full py-2.5 font-display font-black text-xs tracking-wider uppercase cursor-pointer" style="background-color: ${p.red}; color: #F4F1DE;">
+              RESET POSTER STATE
+            </button>
+          `;
+
+          document.getElementById('m-reset-lobby-btn').addEventListener('click', () => {
+            state.featuredSelected = [];
+            state.featuredSolvedWords.clear();
+            featuredWordStatus.innerHTML = `TODAY'S CLOUD: <strong style="color: ${p.blue};">C-L-O-U-D</strong>`;
+            buildFeaturedPuzzleGrid();
+            setWeather('rain');
+            modalOverlay.classList.add('hidden');
+          });
+        }
+      }
+
+      // =======================================================================
+      // 7. SKY ARENA CANVAS, CLOUDS, LETTERS & WORD BUILDING
+      // =======================================================================
+      function resizeArenaCanvas() {
+        const wrapper = document.getElementById('arena-wrapper');
+        const rect = wrapper.getBoundingClientRect();
+        state.width = Math.max(280, rect.width);
+        state.height = Math.max(260, rect.height);
+        state.dpr = Math.min(window.devicePixelRatio || 1, 2);
+        canvas.width = Math.floor(state.width * state.dpr);
+        canvas.height = Math.floor(state.height * state.dpr);
+        ctx.setTransform(state.dpr, 0, 0, state.dpr, 0, 0);
+
+        buildBauhausClouds();
+        buildWeatherParticles();
+      }
+
+      function buildBauhausClouds() {
+        const count = 3;
+        const step = state.width / (count + 0.45);
+        state.clouds = [];
+        for (let i = 0; i < count; i++) {
+          const cx = step * (i + 0.72);
+          const cy = i === 1 ? 66 : 78;
+          const rx = state.width < 640 ? 48 : 64;
+          state.clouds.push({
+            id: i,
+            x: cx,
+            y: cy,
+            baseX: cx,
+            baseY: cy,
+            rx,
+            ry: rx * 0.48,
+            phase: i * 1.8,
+            pulse: 0
+          });
+        }
+      }
+
+      function buildWeatherParticles() {
+        const count = Math.min(80, Math.floor((state.width * state.height) / 9000));
+        state.weatherParticles = [];
+        for (let i = 0; i < count; i++) {
+          state.weatherParticles.push({
+            x: Math.random() * state.width,
+            y: Math.random() * state.height,
+            len: 12 + Math.random() * 16,
+            r: 2.5 + Math.random() * 3,
+            speed: 130 + Math.random() * 190,
+            phase: Math.random() * Math.PI * 2
+          });
+        }
+      }
+
+      function randomLetterChar() {
+        return LETTER_BAG[Math.floor(Math.random() * LETTER_BAG.length)];
+      }
+
+      function spawnLetter(charOverride = null, xOverride = null, yOverride = null) {
+        const size = state.width < 640 ? 44 : 50;
+        const margin = Math.max(34, size);
+        const x = xOverride !== null
+          ? xOverride
+          : margin + Math.random() * Math.max(40, state.width - margin * 2);
+        const y = yOverride !== null ? yOverride : 108 + Math.random() * 16;
+        const char = charOverride || randomLetterChar();
+
+        const highVal = { Q: 5, Z: 5, X: 4, J: 4, K: 3, V: 3, W: 3, Y: 3, B: 2, C: 2, D: 2, F: 2, G: 2, H: 2, M: 2, P: 2 };
+        const accents = ['paper', 'paper', 'blue', 'yellow'];
+
+        state.letters.push({
+          id: state.nextId++,
+          char,
+          pts: highVal[char] || 1,
+          accent: accents[state.nextId % accents.length],
+          x,
+          y,
+          vx: (Math.random() - 0.5) * 28,
+          vy: 42 + Math.random() * 36,
+          angle: 0,
+          vAngle: 0,
+          size,
+          scale: 0.2
+        });
+      }
+
+      function seedArenaLetters(mode) {
+        state.letters = [];
+        state.selectedIds = [];
+        const total = state.width < 640 ? 15 : 20;
+
+        for (let i = 0; i < total; i++) {
+          spawnLetter(null, null, 126 + Math.random() * Math.max(120, state.height * 0.48));
+        }
+
+        // Guarantee playable starter words (including C-L-O-U-D in Daily Challenge)
+        const starter = mode === 'daily'
+          ? ['C', 'L', 'O', 'U', 'D', 'S', 'U', 'N']
+          : ['W', 'I', 'N', 'D', 'R', 'A', 'I', 'N'];
+
+        starter.forEach((ch, idx) => {
+          spawnLetter(
+            ch,
+            state.width * (0.18 + (idx % 4) * 0.2),
+            148 + Math.floor(idx / 4) * 56
+          );
+        });
+      }
+
+      function getSelectedLetters() {
+        return state.selectedIds
+          .map(id => state.letters.find(l => l.id === id))
+          .filter(Boolean);
+      }
+
+      function toggleTileSelection(tile) {
+        if (!tile || state.screen !== 'play') return;
+        const idx = state.selectedIds.indexOf(tile.id);
+        if (idx !== -1) {
+          if (idx === state.selectedIds.length - 1) {
+            state.selectedIds.pop();
+            audio.playMarimbaNote(392, 0.08);
+          } else {
+            state.selectedIds = state.selectedIds.slice(0, idx + 1);
+            audio.playMarimbaNote(440, 0.08);
+          }
+          renderTray();
+          return;
+        }
+
+        if (state.selectedIds.length >= 8) {
+          showGameToast('MAX 8 LETTERS', 1000);
+          return;
+        }
+
+        state.selectedIds.push(tile.id);
+        audio.playMarimbaNote(440 + state.selectedIds.length * 52, 0.09);
+        renderTray();
+
+        if (state.autoSubmit) {
+          const w = getSelectedLetters().map(l => l.char).join('');
+          if (w.length >= 4 && isValidEnglishWord(w)) {
+            submitWord();
+          }
+        }
+      }
+
+      function renderTray() {
+        state.selectedIds = state.selectedIds.filter(id => state.letters.some(l => l.id === id));
+        const chosen = getSelectedLetters();
+        const p = pal();
+
+        Array.from(traySlots.children).forEach(el => {
+          if (el !== trayPlaceholder) el.remove();
+        });
+
+        if (chosen.length === 0) {
+          trayPlaceholder.classList.remove('hidden');
+          traySubmitBtn.disabled = true;
+          return;
+        }
+
+        trayPlaceholder.classList.add('hidden');
+        const word = chosen.map(l => l.char).join('');
+        const valid = word.length >= state.minWordLen && isValidEnglishWord(word);
+        traySubmitBtn.disabled = !valid;
+
+        chosen.forEach((l, idx) => {
+          const chip = document.createElement('button');
+          chip.type = 'button';
+          chip.textContent = l.char;
+          chip.className = 'stamp-pop w-8 h-9 sm:w-9 sm:h-10 border-[2.5px] font-display font-black text-sm sm:text-base flex items-center justify-center shrink-0 cursor-pointer';
+          chip.style.borderColor = p.ink;
+          chip.style.backgroundColor = valid ? p.yellow : p.paper;
+          chip.style.color = p.ink;
+          chip.addEventListener('click', (e) => {
+            e.stopPropagation();
+            state.selectedIds.splice(idx, 1);
+            audio.playMarimbaNote(392, 0.08);
+            renderTray();
+          });
+          traySlots.appendChild(chip);
+        });
+      }
+
+      function updateGameplayHUD() {
+        hudScore.textContent = state.score.toLocaleString();
+        hudWords.textContent = String(state.wordsFound.length);
+
+        if (state.mode === 'daily') {
+          const secs = Math.max(0, Math.ceil(state.dailyTimer));
+          hudGoalVal.textContent = `${secs}s`;
+        } else {
+          hudGoalVal.textContent = `${state.levelWords}/${state.levelGoal}`;
+        }
+      }
+
+      function spawnGeometricBurst(x, y, count = 16) {
+        const p = pal();
+        const colors = [p.red, p.blue, p.yellow, p.ink];
+        const shapes = ['triangle', 'circle', 'square'];
+        for (let i = 0; i < count; i++) {
+          const ang = (Math.PI * 2 * i) / count + (Math.random() - 0.5) * 0.35;
+          const spd = 80 + Math.random() * 210;
+          state.geometricBursts.push({
+            x,
+            y,
+            vx: Math.cos(ang) * spd,
+            vy: Math.sin(ang) * spd - 40,
+            size: 6 + Math.random() * 6,
+            rot: Math.random() * Math.PI * 2,
+            vRot: (Math.random() - 0.5) * 10,
+            color: colors[i % colors.length],
+            shape: shapes[i % shapes.length],
+            life: 0.55 + Math.random() * 0.25,
+            maxLife: 0.8
+          });
+        }
+      }
+
+      function submitWord() {
+        const chosen = getSelectedLetters();
+        const word = chosen.map(l => l.char).join('');
+        if (word.length < state.minWordLen || !isValidEnglishWord(word)) {
+          audio.playReject();
+          wordTrayBox.classList.remove('shake-error');
+          void wordTrayBox.offsetWidth;
+          wordTrayBox.classList.add('shake-error');
+          showGameToast(
+            word.length < state.minWordLen ? `NEED ${state.minWordLen}+ LETTERS` : `"${word}" NOT IN DICTIONARY`,
+            1300
+          );
+          return;
+        }
+
+        const base = chosen.reduce((sum, l) => sum + l.pts, 0) * 25;
+        const lenBonus = Math.max(0, (word.length - 3) * 40);
+        const dailyCloudBonus = (state.mode === 'daily' && word === 'CLOUD') ? 150 : 0;
+        const gained = (base + lenBonus + dailyCloudBonus) * state.combo;
+
+        state.score += gained;
+        state.wordsFound.push(word);
+        state.combo = Math.min(6, state.combo + 1);
+        state.bestCombo = Math.max(state.bestCombo, state.combo);
+        state.comboTimer = 7.0;
+        state.levelWords++;
+
+        let leveledUp = false;
+        if (state.mode === 'classic' && state.levelWords >= state.levelGoal) {
+          state.level++;
+          state.levelWords = 0;
+          state.levelGoal = Math.min(6, 2 + state.level);
+          leveledUp = true;
+        }
+
+        const usedSet = new Set(chosen.map(l => l.id));
+        chosen.forEach(l => spawnGeometricBurst(l.x, l.y, 14));
+
+        const cx = chosen.reduce((s, l) => s + l.x, 0) / chosen.length;
+        const cy = chosen.reduce((s, l) => s + l.y, 0) / chosen.length;
+        state.floatingPopups.push({
+          x: cx,
+          y: cy - 8,
+          vy: -55,
+          text: leveledUp ? `LEVEL ${state.level}! +${gained}` : `${word} +${gained}`,
+          life: 1.15
+        });
+
+        audio.playVictoryFanfare(word.length);
+
+        state.letters = state.letters.filter(l => !usedSet.has(l.id));
+        state.selectedIds = [];
+        for (let i = 0; i < Math.min(4, word.length); i++) spawnLetter();
+
+        renderTray();
+        updateGameplayHUD();
+        showGameToast(
+          leveledUp ? `LEVEL ${state.level} UNLOCKED!` : `${word} · +${gained} PTS`,
+          1500
+        );
+      }
+
+      // =======================================================================
+      // 8. WEATHER PHYSICS ENGINE (RAIN, SNOW STACKING, WIND STEERING, SUN LIFT)
+      // =======================================================================
+      function updateArenaPhysics(dt) {
+        if (state.screen !== 'play') return;
+
+        const now = performance.now() * 0.001;
+
+        if (state.combo > 1) {
+          state.comboTimer -= dt;
+          if (state.comboTimer <= 0) state.combo = 1;
+        }
+
+        if (state.mode === 'daily' && state.dailyTimer > 0) {
+          state.dailyTimer = Math.max(0, state.dailyTimer - dt);
+          updateGameplayHUD();
+          if (state.dailyTimer === 0) {
+            showGameToast(`DAILY TIME UP! FINAL: ${state.score} PTS`, 3200);
+          }
+        }
+
+        // Clouds drift gently
+        state.clouds.forEach(c => {
+          c.phase += dt * 1.25;
+          c.x = c.baseX + Math.sin(c.phase * 0.7) * 8;
+          c.y = c.baseY + Math.cos(c.phase) * 3;
+          if (c.pulse > 0) c.pulse = Math.max(0, c.pulse - dt * 2.6);
+        });
+
+        // Replenish falling tiles
+        const cap = state.width < 640 ? 22 : 28;
+        state.spawnTimer -= dt;
+        if (state.spawnTimer <= 0 && state.letters.length < cap) {
+          spawnLetter();
+          state.spawnTimer = state.weather === 'rain' ? 0.9 : 1.25;
+        }
+
+        const floorY = state.height - 14;
+        const ceilingY = 108;
+        const w = state.weather;
+
+        for (let i = 0; i < state.letters.length; i++) {
+          const l = state.letters[i];
+          l.scale = Math.min(1, l.scale + dt * 5);
+
+          if (w === 'rain') {
+            l.vy += 225 * dt;
+            l.vx += Math.sin(now * 2.5 + l.id) * 26 * dt;
+            l.vx *= Math.pow(0.28, dt);
+            l.vy = Math.min(l.vy, 280);
+          } else if (w === 'snow') {
+            l.vy += (55 - l.vy) * Math.min(1, dt * 4.5);
+            l.vx = Math.sin(now * 2.0 + l.id * 1.5) * 34;
+          } else if (w === 'wind') {
+            l.vx += state.windVec.x * 1.6 * dt;
+            l.vy += (state.windVec.y * 0.75 + 42) * dt;
+            l.vx *= Math.pow(0.35, dt);
+            l.vy *= Math.pow(0.35, dt);
+            const spd = Math.hypot(l.vx, l.vy);
+            if (spd > 325) {
+              l.vx = (l.vx / spd) * 325;
+              l.vy = (l.vy / spd) * 325;
+            }
+          } else if (w === 'sun') {
+            l.vy += (-78 - l.vy) * Math.min(1, dt * 3.8);
+            l.vx += Math.cos(now * 2.2 + l.id) * 26 * dt;
+            l.vx *= Math.pow(0.32, dt);
+          }
+
+          l.x += l.vx * dt;
+          l.y += l.vy * dt;
+
+          const half = l.size * 0.5;
+          if (l.x < half + 10) {
+            l.x = half + 10;
+            l.vx = Math.abs(l.vx) * 0.65;
+          } else if (l.x > state.width - half - 10) {
+            l.x = state.width - half - 10;
+            l.vx = -Math.abs(l.vx) * 0.65;
+          }
+
+          if (w === 'sun') {
+            if (l.y < ceilingY + half + 8) {
+              l.y = ceilingY + half + 8;
+              l.vy = Math.abs(l.vy) * 0.35;
+            }
+            if (l.y > floorY - half) {
+              l.y = floorY - half;
+              l.vy = -82;
+            }
+          } else {
+            if (l.y < ceilingY + half) {
+              l.y = ceilingY + half;
+              l.vy = Math.max(28, Math.abs(l.vy) * 0.4);
+            }
+            if (l.y > floorY - half) {
+              l.y = floorY - half;
+              if (w === 'snow') {
+                l.vy = 0;
+                l.vx *= 0.55;
+              } else if (w === 'rain') {
+                // Recycle raindrops back to top cloud canopy
+                l.y = ceilingY + half;
+                l.vy = 56;
+                l.char = randomLetterChar();
+              } else {
+                l.vy = -Math.abs(l.vy) * 0.35;
+              }
+            }
+          }
+        }
+
+        // Column stacking in SNOW mode & crisp AABB/circle separation
+        const passes = w === 'snow' ? 3 : 1;
+        for (let pass = 0; pass < passes; pass++) {
+          for (let i = 0; i < state.letters.length; i++) {
+            for (let j = i + 1; j < state.letters.length; j++) {
+              const a = state.letters[i];
+              const b = state.letters[j];
+              const minD = (a.size + b.size) * 0.52;
+              const dx = b.x - a.x;
+              const dy = b.y - a.y;
+              const dist = Math.hypot(dx, dy);
+              if (dist > 0.001 && dist < minD) {
+                const overlap = (minD - dist) * 0.5;
+                const nx = dx / dist;
+                const ny = dy / dist;
+                const factor = w === 'snow' ? 0.72 : 0.35;
+                a.x -= nx * overlap * factor;
+                a.y -= ny * overlap * factor;
+                b.x += nx * overlap * factor;
+                b.y += ny * overlap * factor;
+              }
+            }
+          }
+        }
+
+        // Ambient Bauhaus geometric particles
+        state.weatherParticles.forEach(pt => {
+          if (w === 'rain') {
+            pt.x += state.windVec.x * 0.08 * dt;
+            pt.y += pt.speed * 1.9 * dt;
+          } else if (w === 'snow') {
+            pt.phase += dt * 2.0;
+            pt.x += (Math.sin(pt.phase) * 28 + state.windVec.x * 0.1) * dt;
+            pt.y += pt.speed * 0.28 * dt;
+          } else if (w === 'wind') {
+            pt.x += (state.windVec.x * 1.85 + Math.sign(state.windVec.x || 1) * 180) * dt;
+            pt.y += (state.windVec.y * 0.8 + Math.sin(pt.phase) * 20) * dt;
+          } else if (w === 'sun') {
+            pt.phase += dt * 1.8;
+            pt.x += Math.cos(pt.phase) * 22 * dt;
+            pt.y -= pt.speed * 0.34 * dt;
+          }
+          if (pt.y > state.height + 20) pt.y = -15;
+          if (pt.y < -25) pt.y = state.height + 10;
+          if (pt.x > state.width + 25) pt.x = -20;
+          if (pt.x < -25) pt.x = state.width + 20;
+        });
+
+        // Geometric bursts & floating popups
+        for (let i = state.geometricBursts.length - 1; i >= 0; i--) {
+          const gb = state.geometricBursts[i];
+          gb.life -= dt;
+          if (gb.life <= 0) {
+            state.geometricBursts.splice(i, 1);
+            continue;
+          }
+          gb.x += gb.vx * dt;
+          gb.y += gb.vy * dt;
+          gb.vy += 260 * dt;
+          gb.rot += gb.vRot * dt;
+        }
+
+        for (let i = state.floatingPopups.length - 1; i >= 0; i--) {
+          const fp = state.floatingPopups[i];
+          fp.life -= dt;
+          if (fp.life <= 0) {
+            state.floatingPopups.splice(i, 1);
+            continue;
+          }
+          fp.y += fp.vy * dt;
+        }
+      }
+
+      // =======================================================================
+      // 9. BAUHAUS GEOMETRIC SKY CANVAS RENDERER
+      // =======================================================================
+      function renderArenaFrame() {
+        if (state.screen !== 'play') return;
+
+        const p = pal();
+        const W = state.width;
+        const H = state.height;
+        const w = state.weather;
+
+        // 1. Archival Off-White Paper Canvas
+        ctx.fillStyle = p.paper;
+        ctx.fillRect(0, 0, W, H);
+
+        // Subtle Bauhaus architectural grid rules in background
+        ctx.save();
+        ctx.strokeStyle = p.ink;
+        ctx.globalAlpha = 0.14;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(0, 108);
+        ctx.lineTo(W, 108);
+        ctx.moveTo(W * 0.25, 0);
+        ctx.lineTo(W * 0.25, H);
+        ctx.moveTo(W * 0.75, 0);
+        ctx.lineTo(W * 0.75, H);
+        ctx.stroke();
+        ctx.restore();
+
+        // 2. Weather-Specific Geometric Background Motifs
+        if (w === 'sun') {
+          ctx.save();
+          const sunX = W * 0.84;
+          const sunY = 92;
+          ctx.fillStyle = p.yellow;
+          ctx.beginPath();
+          ctx.arc(sunX, sunY, 54, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = p.ink;
+          ctx.lineWidth = 3;
+          ctx.stroke();
+
+          // Diagonal geometric sunbeams
+          ctx.strokeStyle = p.yellow;
+          ctx.lineWidth = 10;
+          ctx.beginPath();
+          ctx.moveTo(sunX - 45, sunY + 45);
+          ctx.lineTo(sunX - 180, sunY + 180);
+          ctx.moveTo(sunX - 15, sunY + 60);
+          ctx.lineTo(sunX - 95, sunY + 220);
+          ctx.stroke();
+          ctx.restore();
+        } else if (w === 'snow') {
+          // Crisp Bauhaus stacked baseline bar at bottom
+          ctx.save();
+          ctx.fillStyle = p.blue;
+          ctx.fillRect(0, H - 14, W, 14);
+          ctx.strokeStyle = p.ink;
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.moveTo(0, H - 14);
+          ctx.lineTo(W, H - 14);
+          ctx.stroke();
+          ctx.restore();
+        }
+
+        // 3. Weather Particles (Crisp Bauhaus Vector Lines & Shapes)
+        ctx.save();
+        if (w === 'rain') {
+          ctx.strokeStyle = p.blue;
+          ctx.lineWidth = 2.6;
+          ctx.lineCap = 'square';
+          state.weatherParticles.forEach(pt => {
+            ctx.beginPath();
+            ctx.moveTo(pt.x, pt.y);
+            ctx.lineTo(pt.x, pt.y + pt.len);
+            ctx.stroke();
+          });
+        } else if (w === 'snow') {
+          ctx.strokeStyle = p.ink;
+          ctx.lineWidth = 2;
+          state.weatherParticles.forEach(pt => {
+            const r = pt.r + 1.5;
+            ctx.beginPath();
+            ctx.moveTo(pt.x, pt.y - r);
+            ctx.lineTo(pt.x, pt.y + r);
+            ctx.moveTo(pt.x - r * 0.86, pt.y - r * 0.5);
+            ctx.lineTo(pt.x + r * 0.86, pt.y + r * 0.5);
+            ctx.moveTo(pt.x + r * 0.86, pt.y - r * 0.5);
+            ctx.lineTo(pt.x - r * 0.86, pt.y + r * 0.5);
+            ctx.stroke();
+          });
+        } else if (w === 'wind') {
+          ctx.strokeStyle = p.red;
+          ctx.lineWidth = 2.8;
+          ctx.setLineDash([8, 6]);
+          const mag = Math.max(40, Math.hypot(state.windVec.x, state.windVec.y));
+          const ux = state.windVec.x / mag;
+          const uy = state.windVec.y / mag;
+          const len = Math.min(58, 22 + mag * 0.1);
+          state.weatherParticles.forEach(pt => {
+            ctx.beginPath();
+            ctx.moveTo(pt.x, pt.y);
+            ctx.lineTo(pt.x + ux * len, pt.y + uy * len);
+            ctx.stroke();
+          });
+          ctx.setLineDash([]);
+        } else if (w === 'sun') {
+          ctx.fillStyle = p.yellow;
+          ctx.strokeStyle = p.ink;
+          ctx.lineWidth = 1.5;
+          state.weatherParticles.forEach(pt => {
+            ctx.beginPath();
+            ctx.arc(pt.x, pt.y, pt.r + 1, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+          });
+        }
+        ctx.restore();
+
+        // 4. Three Faceted Bauhaus Clouds with Black Circle Accents
+        state.clouds.forEach(c => {
+          const sc = 1 + c.pulse * 0.12;
+          ctx.save();
+          ctx.translate(c.x, c.y);
+          ctx.scale(sc, sc);
+
+          // Black Bauhaus circle emblem behind cloud
+          ctx.fillStyle = p.ink;
+          ctx.beginPath();
+          ctx.arc(c.rx * 0.25, -c.ry * 0.18, c.ry * 0.72, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Yellow or Red geometric sun dot accent
+          ctx.fillStyle = w === 'sun' ? p.yellow : p.red;
+          ctx.beginPath();
+          ctx.arc(c.rx * 0.45, -c.ry * 0.36, c.ry * 0.28, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Faceted Cobalt Polygon Cloud
+          const w2 = c.rx;
+          const h2 = c.ry;
+          ctx.fillStyle = p.blue;
+          ctx.strokeStyle = p.ink;
+          ctx.lineWidth = 2.8;
+          ctx.lineJoin = 'round';
+          ctx.beginPath();
+          ctx.moveTo(-w2 * 0.9, h2 * 0.45);
+          ctx.lineTo(-w2 * 0.62, -h2 * 0.15);
+          ctx.lineTo(-w2 * 0.32, -h2 * 0.15);
+          ctx.lineTo(-w2 * 0.15, -h2 * 0.65);
+          ctx.lineTo(w2 * 0.25, -h2 * 0.65);
+          ctx.lineTo(w2 * 0.42, -h2 * 0.15);
+          ctx.lineTo(w2 * 0.76, -h2 * 0.15);
+          ctx.lineTo(w2 * 0.92, h2 * 0.28);
+          ctx.lineTo(w2 * 0.75, h2 * 0.45);
+          ctx.closePath();
+          ctx.fill();
+          ctx.stroke();
+
+          // Internal triangulation lines
+          ctx.lineWidth = 1.8;
+          ctx.beginPath();
+          ctx.moveTo(-w2 * 0.62, -h2 * 0.15);
+          ctx.lineTo(-w2 * 0.3, h2 * 0.45);
+          ctx.lineTo(-w2 * 0.15, -h2 * 0.65);
+          ctx.lineTo(w2 * 0.22, h2 * 0.45);
+          ctx.lineTo(w2 * 0.25, -h2 * 0.65);
+          ctx.stroke();
+
+          ctx.restore();
+        });
+
+        // 5. Word Selection Chain Line
+        const chosen = getSelectedLetters();
+        if (chosen.length > 1) {
+          ctx.save();
+          ctx.strokeStyle = p.red;
+          ctx.lineWidth = 4;
+          ctx.beginPath();
+          chosen.forEach((l, i) => {
+            if (i === 0) ctx.moveTo(l.x, l.y);
+            else ctx.lineTo(l.x, l.y);
+          });
+          ctx.stroke();
+          ctx.restore();
+        }
+
+        // 6. Crisp Bauhaus Square Letter Tiles (matching Featured Puzzle aesthetic)
+        state.letters.forEach(l => {
+          const selIdx = state.selectedIds.indexOf(l.id);
+          const isSelected = selIdx !== -1;
+
+          ctx.save();
+          ctx.translate(l.x, l.y);
+          const sc = l.scale * (isSelected ? 1.1 : 1);
+          ctx.scale(sc, sc);
+
+          const half = l.size * 0.5;
+
+          // Hard offset ink block shadow
+          ctx.fillStyle = p.ink;
+          ctx.fillRect(-half + 4, -half + 4, l.size, l.size);
+
+          // Tile face
+          ctx.fillStyle = isSelected ? p.yellow : p.paper;
+          ctx.strokeStyle = p.ink;
+          ctx.lineWidth = 3;
+          ctx.fillRect(-half, -half, l.size, l.size);
+          ctx.strokeRect(-half, -half, l.size, l.size);
+
+          // Bold geometric sans-serif letter
+          ctx.fillStyle = isSelected
+            ? p.ink
+            : l.accent === 'blue' ? p.blue
+            : l.accent === 'yellow' ? p.red
+            : p.ink;
+          ctx.font = `900 ${Math.round(l.size * 0.52)}px 'Outfit', 'Space Grotesk', sans-serif`;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(l.char, 0, 1);
+
+          // Order number corner square when selected
+          if (isSelected) {
+            ctx.fillStyle = p.red;
+            ctx.fillRect(-half, -half, 16, 16);
+            ctx.strokeRect(-half, -half, 16, 16);
+            ctx.fillStyle = '#F4F1DE';
+            ctx.font = "900 10px 'Outfit', sans-serif";
+            ctx.fillText(String(selIdx + 1), -half + 8, -half + 8.5);
+          }
+
+          ctx.restore();
+        });
+
+        // 7. Directional Wind Swipe Vector Arrow
+        if (state.isSwipingWind) {
+          const sx = state.swipeStart.x;
+          const sy = state.swipeStart.y;
+          const cx = state.swipeCurr.x;
+          const cy = state.swipeCurr.y;
+          if (Math.hypot(cx - sx, cy - sy) > 10) {
+            ctx.save();
+            ctx.strokeStyle = p.ink;
+            ctx.fillStyle = p.red;
+            ctx.lineWidth = 3.5;
+            ctx.setLineDash([8, 6]);
+            ctx.beginPath();
+            ctx.moveTo(sx, sy);
+            ctx.lineTo(cx, cy);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            const ang = Math.atan2(cy - sy, cx - sx);
+            ctx.beginPath();
+            ctx.moveTo(cx, cy);
+            ctx.lineTo(cx - 15 * Math.cos(ang - 0.5), cy - 15 * Math.sin(ang - 0.5));
+            ctx.lineTo(cx - 15 * Math.cos(ang + 0.5), cy - 15 * Math.sin(ang + 0.5));
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+            ctx.restore();
+          }
+        }
+
+        // 8. Geometric Bauhaus Bursts (Triangles, Circles, Squares) & Floating Score Boxes
+        state.geometricBursts.forEach(gb => {
+          ctx.save();
+          ctx.translate(gb.x, gb.y);
+          ctx.rotate(gb.rot);
+          ctx.globalAlpha = Math.max(0, gb.life / gb.maxLife);
+          ctx.fillStyle = gb.color;
+          ctx.strokeStyle = p.ink;
+          ctx.lineWidth = 2;
+
+          if (gb.shape === 'circle') {
+            ctx.beginPath();
+            ctx.arc(0, 0, gb.size * 0.6, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+          } else if (gb.shape === 'square') {
+            ctx.fillRect(-gb.size * 0.5, -gb.size * 0.5, gb.size, gb.size);
+            ctx.strokeRect(-gb.size * 0.5, -gb.size * 0.5, gb.size, gb.size);
+          } else {
+            ctx.beginPath();
+            ctx.moveTo(0, -gb.size * 0.7);
+            ctx.lineTo(gb.size * 0.65, gb.size * 0.55);
+            ctx.lineTo(-gb.size * 0.65, gb.size * 0.55);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+          }
+          ctx.restore();
+        });
+
+        state.floatingPopups.forEach(fp => {
+          ctx.save();
+          ctx.globalAlpha = Math.min(1, fp.life * 1.4);
+          ctx.font = "900 14px 'Outfit', sans-serif";
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          const tw = ctx.measureText(fp.text).width + 20;
+
+          ctx.fillStyle = p.ink;
+          ctx.fillRect(fp.x - tw * 0.5 + 3, fp.y - 13 + 3, tw, 26);
+
+          ctx.fillStyle = p.yellow;
+          ctx.strokeStyle = p.ink;
+          ctx.lineWidth = 2.5;
+          ctx.fillRect(fp.x - tw * 0.5, fp.y - 13, tw, 26);
+          ctx.strokeRect(fp.x - tw * 0.5, fp.y - 13, tw, 26);
+
+          ctx.fillStyle = p.ink;
+          ctx.fillText(fp.text, fp.x, fp.y + 1);
+          ctx.restore();
+        });
+      }
+
+      // =======================================================================
+      // 10. POINTER & KEYBOARD EVENT BINDINGS
+      // =======================================================================
+      function hitCloud(x, y) {
+        return state.clouds.find(c => {
+          const dx = (x - c.x) / (c.rx * 1.15);
+          const dy = (y - c.y) / (c.ry * 1.35);
+          return dx * dx + dy * dy <= 1;
+        });
+      }
+
+      function hitTile(x, y) {
+        for (let i = state.letters.length - 1; i >= 0; i--) {
+          const l = state.letters[i];
+          const pad = l.size * 0.58;
+          if (Math.abs(x - l.x) <= pad && Math.abs(y - l.y) <= pad) return l;
+        }
+        return null;
+      }
+
+      canvas.addEventListener('pointerdown', (e) => {
+        audio.init();
+        if (state.screen !== 'play') return;
+
+        const rect = canvas.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        state.swipeStart = { x, y };
+        state.swipeCurr = { x, y };
+
+        if (hitCloud(x, y)) {
+          cycleWeather();
+          return;
+        }
+
+        const tile = hitTile(x, y);
+        if (tile) {
+          state.isDraggingLetters = true;
+          toggleTileSelection(tile);
+          return;
+        }
+
+        state.isSwipingWind = true;
+      });
+
+      window.addEventListener('pointermove', (e) => {
+        if (state.screen !== 'play') return;
+        const rect = canvas.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        state.swipeCurr = { x, y };
+
+        if (state.isDraggingLetters) {
+          const tile = hitTile(x, y);
+          if (tile && !state.selectedIds.includes(tile.id)) {
+            toggleTileSelection(tile);
+          }
+          return;
+        }
+
+        if (state.isSwipingWind) {
+          const dx = x - state.swipeStart.x;
+          const dy = y - state.swipeStart.y;
+          const dist = Math.hypot(dx, dy);
+          if (dist > 12) {
+            if (state.weather !== 'wind') setWeather('wind');
+            const clamped = Math.min(220, dist);
+            const strength = (clamped / 220) * 340;
+            state.windVec.x = (dx / dist) * strength;
+            state.windVec.y = (dy / dist) * strength;
+            audio.setWindIntensity(clamped / 220, true);
+          }
+        }
+      });
+
+      window.addEventListener('pointerup', () => {
+        state.isDraggingLetters = false;
+        if (state.isSwipingWind) {
+          state.isSwipingWind = false;
+          audio.setWindIntensity(
+            Math.hypot(state.windVec.x, state.windVec.y) / 340,
+            state.weather === 'wind' && state.screen === 'play'
+          );
+        }
+      });
+
+      // Lobby & Gameplay Buttons
+      lobbyPlayBtn.addEventListener('click', () => startGame('classic'));
+      lobbyDailyBtn.addEventListener('click', () => startGame('daily'));
+      lobbySettingsBtn.addEventListener('click', () => openBauhausModal('settings'));
+      emblemCycleBtn.addEventListener('click', () => {
+        audio.init();
+        cycleWeather();
+      });
+
+      featuredClearBtn.addEventListener('click', () => {
+        state.featuredSelected = [];
+        featuredWordStatus.innerHTML = `TODAY'S CLOUD: <strong style="color: ${pal().blue};">C-L-O-U-D</strong>`;
+        audio.playMarimbaNote(392, 0.08);
+        buildFeaturedPuzzleGrid();
+      });
+
+      [...lobbyWeatherCells, ...gameWeatherCells].forEach(btn => {
+        btn.addEventListener('click', () => {
+          audio.init();
+          setWeather(btn.dataset.weather);
+        });
+      });
+
+      footerNavBtns.forEach(btn => {
+        btn.addEventListener('click', () => openBauhausModal(btn.dataset.modal));
+      });
+
+      modalCloseBtn.addEventListener('click', () => {
+        audio.playMarimbaNote(392, 0.08);
+        modalOverlay.classList.add('hidden');
+      });
+
+      modalOverlay.addEventListener('click', (e) => {
+        if (e.target === modalOverlay) {
+          modalOverlay.classList.add('hidden');
+        }
+      });
+
+      gameLobbyBtn.addEventListener('click', returnToLobby);
+
+      gameSoundBtn.addEventListener('click', () => {
+        const muted = audio.toggleMute();
+        soundIcon.textContent = muted ? '🔇' : '🔊';
+      });
+
+      trayClearBtn.addEventListener('click', () => {
+        state.selectedIds = [];
+        audio.playMarimbaNote(392, 0.08);
+        renderTray();
+      });
+
+      trayShuffleBtn.addEventListener('click', () => {
+        audio.playWeatherSwitch('wind');
+        seedArenaLetters(state.mode);
+        renderTray();
+        showGameToast('FRESH BREEZE OF TILES', 1200);
+      });
+
+      traySubmitBtn.addEventListener('click', submitWord);
+
+      window.addEventListener('keydown', (e) => {
+        if (state.screen === 'play') {
+          if (e.key === 'Enter') submitWord();
+          else if (e.key === 'Backspace') {
+            state.selectedIds.pop();
+            renderTray();
+          } else if (e.key === '1') setWeather('rain');
+          else if (e.key === '2') setWeather('snow');
+          else if (e.key === '3') setWeather('wind');
+          else if (e.key === '4') setWeather('sun');
+        }
+      });
+
+      // =======================================================================
+      // 11. MAIN ANIMATION LOOP & BOOTSTRAP
+      // =======================================================================
+      function loop(now) {
+        if (!state.lastFrame) state.lastFrame = now;
+        const dt = Math.min(0.05, Math.max(0.001, (now - state.lastFrame) / 1000));
+        state.lastFrame = now;
+
+        updateArenaPhysics(dt);
+        renderArenaFrame();
+        requestAnimationFrame(loop);
+      }
+
+      window.addEventListener('resize', () => {
+        if (state.screen === 'play') resizeArenaCanvas();
+      });
+
+      applyPalette('classic1923');
+      buildFeaturedPuzzleGrid();
+      setWeather('rain', true);
+      requestAnimationFrame(loop);
+    })();
+  </script>
+</body>
+</html>

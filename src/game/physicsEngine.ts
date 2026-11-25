@@ -2,6 +2,7 @@ import { audioEngine } from './audioEngine';
 import {
   getDailyTargetWord,
   getLetterPoints,
+  getTodayKey,
   isValidEnglishWord,
   pickBalancedLetter,
 } from './dictionary';
@@ -55,6 +56,8 @@ export class WordWeatherEngine {
   private readonly comboMaxTime = 7.5;
   private bestCombo = 1;
   private physicsBonuses = 0;
+  private weatherShifts = 0;
+  private weatherSequence: WeatherType[] = [];
   private level = 1;
   private levelWords = 0;
   private levelGoal = 3;
@@ -146,6 +149,8 @@ export class WordWeatherEngine {
     this.comboTimer = 0;
     this.bestCombo = 1;
     this.physicsBonuses = 0;
+    this.weatherShifts = 0;
+    this.weatherSequence = [this.weather];
     this.level = 1;
     this.levelWords = 0;
     this.levelGoal = 3;
@@ -163,7 +168,7 @@ export class WordWeatherEngine {
     this.resize();
     this.seedArenaLetters();
     this.scanAlignedWords();
-    audioEngine.setContextState(this.weather, true);
+    audioEngine.setContextState(this.weather, true, this.mode === 'zen');
     this.emitHud();
 
     if (this.rafId === null) {
@@ -214,11 +219,13 @@ export class WordWeatherEngine {
     });
 
     if (changed && !silent) {
+      this.weatherShifts += 1;
+      this.weatherSequence.push(weather);
       audioEngine.playWeatherSwitch(weather);
       this.callbacks.onToast(WEATHER_META[weather].shortHint, 1500);
     }
 
-    audioEngine.setContextState(weather, true);
+    audioEngine.setContextState(weather, true, this.mode === 'zen');
     this.syncWindAudio();
     this.emitHud();
   }
@@ -363,8 +370,8 @@ export class WordWeatherEngine {
       leveledUp = true;
     }
 
-    // Visual & haptic juice
-    if (word.length >= 4 || hasPhysicsBonus) {
+    // Visual & haptic juice (extra-gentle in Zen Mode — no jarring shake or hitstop)
+    if (this.mode !== 'zen' && (word.length >= 4 || hasPhysicsBonus)) {
       this.hitstopTimer = isPhysicsAlignedCapture ? 0.052 : 0.036;
       this.shakeAmp = Math.min(10, 3 + word.length * 0.9 + (hasPhysicsBonus ? 2.5 : 0));
     }
@@ -705,11 +712,13 @@ export class WordWeatherEngine {
       }
     }
 
-    // Update clouds
+    const isZen = this.mode === 'zen';
+
+    // Update clouds (slower soothing drift in Zen)
     for (const c of this.clouds) {
-      c.phase += dt * 1.2;
-      c.x = c.baseX + Math.sin(c.phase * 0.7) * 8;
-      c.y = c.baseY + Math.cos(c.phase) * 3;
+      c.phase += dt * (isZen ? 0.65 : 1.2);
+      c.x = c.baseX + Math.sin(c.phase * 0.7) * (isZen ? 6 : 8);
+      c.y = c.baseY + Math.cos(c.phase) * (isZen ? 2 : 3);
       if (c.pulse > 0) c.pulse = Math.max(0, c.pulse - dt * 2.8);
       if (c.ripple > 0) c.ripple = Math.max(0, c.ripple - dt * 2.1);
     }
@@ -719,7 +728,7 @@ export class WordWeatherEngine {
     this.spawnTimer -= dt;
     if (this.spawnTimer <= 0 && this.letters.length < cap) {
       this.spawnLetter();
-      this.spawnTimer = this.weather === 'rain' ? 0.85 : 1.25;
+      this.spawnTimer = isZen ? 1.4 : this.weather === 'rain' ? 0.85 : 1.25;
     }
 
     const ceilY = this.getCeilingY();
@@ -736,29 +745,30 @@ export class WordWeatherEngine {
       tile.grounded = false;
 
       if (w === 'rain') {
-        tile.vy += 235 * dt;
-        tile.vx += Math.sin(timeSec * 2.4 + tile.id) * 24 * dt;
+        tile.vy += (isZen ? 115 : 235) * dt;
+        tile.vx += Math.sin(timeSec * (isZen ? 1.4 : 2.4) + tile.id) * (isZen ? 14 : 24) * dt;
         tile.vx *= Math.pow(0.28, dt);
-        tile.vy = Math.min(tile.vy, 285);
+        tile.vy = Math.min(tile.vy, isZen ? 145 : 285);
       } else if (w === 'snow') {
         // Gentle descent; tiles settle cleanly and stack
-        const targetFall = 52;
+        const targetFall = isZen ? 32 : 52;
         tile.vy += (targetFall - tile.vy) * Math.min(1, dt * 4.2);
-        tile.vx += (Math.sin(timeSec * 1.8 + tile.id * 1.4) * 22 - tile.vx) * Math.min(1, dt * 3.5);
+        tile.vx += (Math.sin(timeSec * (isZen ? 1.2 : 1.8) + tile.id * 1.4) * (isZen ? 14 : 22) - tile.vx) * Math.min(1, dt * 3.5);
       } else if (w === 'wind') {
-        tile.vx += this.windVec.x * 1.75 * dt;
-        tile.vy += (this.windVec.y * 0.85 + 36) * dt;
+        tile.vx += this.windVec.x * (isZen ? 1.05 : 1.75) * dt;
+        tile.vy += (this.windVec.y * (isZen ? 0.55 : 0.85) + (isZen ? 18 : 36)) * dt;
         tile.vx *= Math.pow(0.32, dt);
         tile.vy *= Math.pow(0.32, dt);
         const speed = Math.hypot(tile.vx, tile.vy);
-        if (speed > 345) {
-          tile.vx = (tile.vx / speed) * 345;
-          tile.vy = (tile.vy / speed) * 345;
+        const maxWindSpd = isZen ? 205 : 345;
+        if (speed > maxWindSpd) {
+          tile.vx = (tile.vx / speed) * maxWindSpd;
+          tile.vy = (tile.vy / speed) * maxWindSpd;
         }
       } else if (w === 'sun') {
         // Buoyant golden thermal lift
-        tile.vy += (-84 - tile.vy) * Math.min(1, dt * 3.6);
-        tile.vx += Math.cos(timeSec * 2.1 + tile.id) * 26 * dt;
+        tile.vy += ((isZen ? -48 : -84) - tile.vy) * Math.min(1, dt * 3.6);
+        tile.vx += Math.cos(timeSec * (isZen ? 1.3 : 2.1) + tile.id) * (isZen ? 16 : 26) * dt;
         tile.vx *= Math.pow(0.32, dt);
       }
 
@@ -1652,6 +1662,9 @@ export class WordWeatherEngine {
       bestWord,
       bestCombo: this.bestCombo,
       physicsBonuses: this.physicsBonuses,
+      weatherShifts: this.weatherShifts,
+      weatherSequence: [...this.weatherSequence],
+      dailyDate: this.mode === 'daily' ? getTodayKey() : undefined,
       dailyTargetWord: this.mode === 'daily' ? this.dailyTargetWord : undefined,
       dailyTargetFound: this.mode === 'daily' ? this.dailyTargetFound : undefined,
       levelReached: this.level,

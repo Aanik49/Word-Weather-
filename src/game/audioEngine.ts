@@ -24,6 +24,7 @@ class BauhausAudioEngine {
 
   private currentWeather: WeatherType = 'rain';
   private inGameplay = false;
+  private zenMode = false;
   private musicTimerId: number | null = null;
   private stepIndex = 0;
 
@@ -91,9 +92,10 @@ class BauhausAudioEngine {
     }
   }
 
-  public setContextState(weather: WeatherType, inGameplay: boolean): void {
+  public setContextState(weather: WeatherType, inGameplay: boolean, zenMode = false): void {
     this.currentWeather = weather;
     this.inGameplay = inGameplay;
+    this.zenMode = inGameplay && zenMode;
     if (!inGameplay) {
       this.setWindIntensity(0, false);
     }
@@ -187,9 +189,15 @@ class BauhausAudioEngine {
 
     const w = this.currentWeather;
     const activePlay = this.inGameplay;
+    const isZen = this.zenMode;
 
-    // Bass pulse every 8 steps (clean Bauhaus geometric rhythm)
-    if (step % 8 === 0) {
+    // In Zen Mode, breathe at half-tempo (~480ms spacious meditative pulse)
+    if (isZen && step % 2 !== 0) {
+      return;
+    }
+
+    // Bass pulse (clean Bauhaus geometric rhythm; extra-warm long hold in Zen)
+    if (step % (isZen ? 16 : 8) === 0) {
       const bassRoots = !activePlay
         ? [130.81, 146.83, 164.81, 130.81]
         : w === 'rain'
@@ -199,12 +207,13 @@ class BauhausAudioEngine {
             : w === 'wind'
               ? [110.0, 130.81, 146.83, 123.47]
               : [130.81, 164.81, 196.0, 146.83];
-      const root = bassRoots[Math.floor(step / 8) % bassRoots.length];
-      this.playWarmPadNote(root, 1.45, 0.24, 'triangle');
+      const root = bassRoots[Math.floor(step / (isZen ? 16 : 8)) % bassRoots.length];
+      this.playWarmPadNote(root, isZen ? 2.4 : 1.45, isZen ? 0.2 : 0.24, 'triangle');
     }
 
     // Minimalist melodic pattern with deliberate architectural silence
     const lobbyPattern = [0, -1, 2, -1, 4, -1, -1, 3, 5, -1, 4, -1, 2, -1, 1, -1];
+    const zenPattern = [0, -1, 4, -1, 2, -1, 5, -1, 3, -1, 6, -1, 4, -1, -1, -1];
     const rainPattern = [0, 3, -1, 4, 2, -1, 5, -1, 4, 2, -1, 1, 3, -1, 0, -1];
     const snowPattern = [4, -1, -1, 6, -1, 5, -1, -1, 3, -1, -1, 5, -1, 2, -1, -1];
     const windPattern = [0, -1, 4, 2, -1, 5, 3, -1, 1, -1, 4, 6, -1, 3, -1, -1];
@@ -212,13 +221,15 @@ class BauhausAudioEngine {
 
     const pattern = !activePlay
       ? lobbyPattern
-      : w === 'rain'
-        ? rainPattern
-        : w === 'snow'
-          ? snowPattern
-          : w === 'wind'
-            ? windPattern
-            : sunPattern;
+      : isZen
+        ? zenPattern
+        : w === 'rain'
+          ? rainPattern
+          : w === 'snow'
+            ? snowPattern
+            : w === 'wind'
+              ? windPattern
+              : sunPattern;
 
     const scale = !activePlay
       ? this.SCALE_LOBBY
@@ -230,10 +241,19 @@ class BauhausAudioEngine {
             ? this.SCALE_WIND
             : this.SCALE_SUN;
 
-    const deg = pattern[step % pattern.length];
+    const patternIdx = isZen ? Math.floor(step / 2) % pattern.length : step % pattern.length;
+    const deg = pattern[patternIdx];
     if (deg >= 0) {
       const freq = scale[deg % scale.length];
-      if (w === 'snow' && activePlay) {
+      if (isZen) {
+        if (w === 'snow') {
+          this.playCelestaNote(freq, 1.15, 0.14);
+        } else if (w === 'sun') {
+          this.playWarmPadNote(freq, 1.05, 0.14, 'sine');
+        } else {
+          this.playMusicMarimba(freq, 0.62, 0.15);
+        }
+      } else if (w === 'snow' && activePlay) {
         this.playCelestaNote(freq, 0.72, 0.16);
       } else if (w === 'sun' && activePlay) {
         this.playWarmPadNote(freq, 0.58, 0.15, 'sine');
@@ -242,8 +262,8 @@ class BauhausAudioEngine {
       }
     }
 
-    // Gentle wooden tick on off-beats during active wind/rain
-    if (activePlay && (w === 'rain' || w === 'wind') && step % 4 === 2) {
+    // Gentle wooden tick on off-beats during active wind/rain (silenced in Zen for pure calm)
+    if (activePlay && !isZen && (w === 'rain' || w === 'wind') && step % 4 === 2) {
       this.playSoftWoodPulse(w === 'rain' ? 920 : 680, 0.045);
     }
   }

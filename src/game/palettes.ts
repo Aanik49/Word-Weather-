@@ -1,4 +1,4 @@
-import type { BauhausPalette, PaletteId, WeatherType } from './types';
+import type { BauhausPalette, PaletteId, PlayerStats, WeatherType } from './types';
 
 export const PALETTES: Record<PaletteId, BauhausPalette> = {
   classic1923: {
@@ -14,25 +14,19 @@ export const PALETTES: Record<PaletteId, BauhausPalette> = {
   },
   dessauNight: {
     id: 'dessauNight',
-    name: 'Dessau Slate',
-    desc: 'High-contrast architectural paper with bold Bauhaus primaries.',
-    paper: '#E8EBF0',
-    card: '#F4F6F9',
+    name: 'Dessau Night',
+    desc: 'Architectural cool slate paper with crisp electric Bauhaus primaries.',
+    paper: '#E6E9EF',
+    card: '#F3F5F9',
     ink: '#111827',
     red: '#DC2626',
     blue: '#1D4ED8',
     yellow: '#F59E0B',
-  },
-  primaryRed: {
-    id: 'primaryRed',
-    name: 'Primary Crimson',
-    desc: 'Warm exhibition parchment with deep crimson, Prussian blue, and ochre.',
-    paper: '#F7EFE2',
-    card: '#FDF8F0',
-    ink: '#1C1917',
-    red: '#BE123C',
-    blue: '#1E40AF',
-    yellow: '#EAB308',
+    unlockRule: {
+      requiredWords: 5,
+      requiredScore: 500,
+      requirementText: 'Craft 5 words or score 500 pts',
+    },
   },
   weimarTeal: {
     id: 'weimarTeal',
@@ -44,8 +38,78 @@ export const PALETTES: Record<PaletteId, BauhausPalette> = {
     red: '#D95338',
     blue: '#1E6B7B',
     yellow: '#E9B44C',
+    unlockRule: {
+      requiredWords: 15,
+      requiredScore: 1500,
+      requirementText: 'Craft 15 words or score 1,500 pts',
+    },
+  },
+  primaryRed: {
+    id: 'primaryRed',
+    name: 'Primary Crimson',
+    desc: 'Warm exhibition parchment with deep crimson, Prussian blue, and ochre.',
+    paper: '#F7EFE2',
+    card: '#FDF8F0',
+    ink: '#1C1917',
+    red: '#BE123C',
+    blue: '#1E40AF',
+    yellow: '#EAB308',
+    unlockRule: {
+      requiredWords: 30,
+      requiredScore: 3000,
+      allowDailyComplete: true,
+      requirementText: 'Craft 30 words, score 3,000 pts, or complete Daily',
+    },
   },
 };
+
+export const PALETTE_ORDER: PaletteId[] = [
+  'classic1923',
+  'dessauNight',
+  'weimarTeal',
+  'primaryRed',
+];
+
+export function isPaletteUnlocked(paletteId: PaletteId, stats: PlayerStats): boolean {
+  if (paletteId === 'classic1923') return true;
+  if (stats.unlockedPalettes?.includes(paletteId)) return true;
+
+  const rule = PALETTES[paletteId]?.unlockRule;
+  if (!rule) return true;
+
+  const bestScore = Math.max(stats.highScore, stats.dailyBestScore);
+  if (stats.totalWords >= rule.requiredWords) return true;
+  if (bestScore >= rule.requiredScore) return true;
+  if (rule.allowDailyComplete && stats.dailyStreak > 0) return true;
+  return false;
+}
+
+export function getPaletteUnlockProgress(
+  paletteId: PaletteId,
+  stats: PlayerStats,
+): { unlocked: boolean; progressPct: number; progressText: string } {
+  const unlocked = isPaletteUnlocked(paletteId, stats);
+  const rule = PALETTES[paletteId]?.unlockRule;
+  if (unlocked || !rule) {
+    return { unlocked: true, progressPct: 100, progressText: 'Unlocked' };
+  }
+
+  const bestScore = Math.max(stats.highScore, stats.dailyBestScore);
+  const wordPct = Math.min(100, Math.round((stats.totalWords / rule.requiredWords) * 100));
+  const scorePct = Math.min(100, Math.round((bestScore / rule.requiredScore) * 100));
+  const progressPct = Math.max(wordPct, scorePct);
+
+  const progressText =
+    wordPct >= scorePct
+      ? `${Math.min(stats.totalWords, rule.requiredWords)}/${rule.requiredWords} words · or ${rule.requiredScore.toLocaleString()} pts`
+      : `${Math.min(bestScore, rule.requiredScore).toLocaleString()}/${rule.requiredScore.toLocaleString()} pts · or ${rule.requiredWords} words`;
+
+  return { unlocked: false, progressPct, progressText };
+}
+
+export function computeUnlockedPaletteIds(stats: PlayerStats): PaletteId[] {
+  return PALETTE_ORDER.filter((id) => isPaletteUnlocked(id, stats));
+}
 
 export const WEATHER_ORDER: WeatherType[] = ['rain', 'snow', 'wind', 'sun'];
 

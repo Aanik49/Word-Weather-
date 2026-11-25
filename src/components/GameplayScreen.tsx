@@ -1,14 +1,16 @@
 import { useEffect, useRef, useState } from 'react';
-import { Delete, Pause, Play, RotateCcw, Settings, Volume2, VolumeX, Wind } from 'lucide-react';
+import { Check, Copy, Delete, Pause, Play, RotateCcw, Settings, Share2, Volume2, VolumeX, Wind } from 'lucide-react';
 import { audioEngine } from '../game/audioEngine';
+import { buildDailyShareText, shareOrCopyDailyResult } from '../game/dailyShare';
 import { getDailyTargetWord } from '../game/dictionary';
-import { getWeatherColors, WEATHER_META, WEATHER_ORDER } from '../game/palettes';
+import { getWeatherColors, PALETTES, WEATHER_META, WEATHER_ORDER } from '../game/palettes';
 import { WordWeatherEngine } from '../game/physicsEngine';
 import type {
   BauhausPalette,
   GameMode,
   GameSettings,
   HudSnapshot,
+  PaletteId,
   PlayPhase,
   RoundSummaryData,
   WeatherType,
@@ -23,6 +25,7 @@ interface GameplayScreenProps {
   onWeatherChange: (weather: WeatherType) => void;
   onExitToLobby: () => void;
   onOpenSettings: () => void;
+  onSelectPalette: (id: PaletteId) => void;
   onToggleAudioQuick: () => void;
   onRecordRound: (summary: RoundSummaryData) => RoundSummaryData;
 }
@@ -54,6 +57,7 @@ export function GameplayScreen({
   onWeatherChange,
   onExitToLobby,
   onOpenSettings,
+  onSelectPalette,
   onToggleAudioQuick,
   onRecordRound,
 }: GameplayScreenProps) {
@@ -67,6 +71,7 @@ export function GameplayScreen({
   const [toastVisible, setToastVisible] = useState(false);
   const [shakeTray, setShakeTray] = useState(false);
   const [summary, setSummary] = useState<RoundSummaryData | null>(null);
+  const [shareFeedback, setShareFeedback] = useState<'idle' | 'copied' | 'shared'>('idle');
 
   const onWeatherChangeRef = useRef(onWeatherChange);
   onWeatherChangeRef.current = onWeatherChange;
@@ -110,7 +115,12 @@ export function GameplayScreen({
 
     engineRef.current = engine;
     engine.start(mode, initialWeather);
-    showToast('Tap clouds to change weather · Swipe sky for wind', 2400);
+    showToast(
+      mode === 'zen'
+        ? 'Zen Mode · Untimed calm weather · Take your time'
+        : 'Tap clouds to change weather · Swipe sky for wind',
+      2400,
+    );
 
     const onResize = () => engine.resize();
     const onBlur = () => {
@@ -199,9 +209,28 @@ export function GameplayScreen({
     if (!engine) return;
     audioEngine.playUiClick();
     setSummary(null);
+    setShareFeedback('idle');
     setPhase('ACTIVE');
     engine.start(mode, hud.weather);
-    showToast(mode === 'daily' ? `Daily Challenge · Find ${getDailyTargetWord()}` : 'New session started', 1800);
+    showToast(
+      mode === 'daily'
+        ? `Daily Challenge · Find ${getDailyTargetWord()}`
+        : mode === 'zen'
+          ? 'Zen Mode · Calm weather refreshed'
+          : 'New session started',
+      1800,
+    );
+  };
+
+  const handleShareDaily = async (preferNativeShare: boolean) => {
+    if (!summary) return;
+    audioEngine.playUiClick();
+    const text = buildDailyShareText(summary);
+    const result = await shareOrCopyDailyResult(text, preferNativeShare);
+    if (result === 'copied' || result === 'shared') {
+      setShareFeedback(result);
+      window.setTimeout(() => setShareFeedback('idle'), 2200);
+    }
   };
 
   return (
@@ -233,7 +262,7 @@ export function GameplayScreen({
             </button>
             <div className="hidden sm:flex flex-col leading-tight">
               <span className="font-display font-black text-xs uppercase tracking-wider">
-                {mode === 'daily' ? 'Daily Cloud' : `Level ${hud.level}`}
+                {mode === 'daily' ? 'Daily Cloud' : mode === 'zen' ? 'Zen Mode' : `Level ${hud.level}`}
               </span>
               {mode === 'daily' ? (
                 <span
@@ -242,6 +271,10 @@ export function GameplayScreen({
                 >
                   Target · {hud.dailyTargetWord}
                   {hud.dailyTargetFound ? ' ✓' : ''}
+                </span>
+              ) : mode === 'zen' ? (
+                <span className="text-[11px] font-semibold opacity-75">
+                  Calm Physics · Untimed
                 </span>
               ) : (
                 <span className="text-[11px] font-semibold opacity-75">
@@ -272,7 +305,7 @@ export function GameplayScreen({
 
             <div className="px-2.5 sm:px-4 py-0.5 text-center min-w-[54px]">
               <div className="text-[9px] font-bold opacity-70 uppercase tracking-wider">
-                {mode === 'daily' ? 'Time' : 'Goal'}
+                {mode === 'daily' ? 'Time' : mode === 'zen' ? 'Pace' : 'Goal'}
               </div>
               <div
                 className="font-mono-num font-bold text-sm sm:text-base leading-tight"
@@ -282,7 +315,9 @@ export function GameplayScreen({
               >
                 {mode === 'daily'
                   ? `${Math.max(0, Math.ceil(hud.dailyTimer))}s`
-                  : `${hud.levelWords}/${hud.levelGoal}`}
+                  : mode === 'zen'
+                    ? '∞'
+                    : `${hud.levelWords}/${hud.levelGoal}`}
               </div>
             </div>
           </div>
@@ -577,7 +612,7 @@ export function GameplayScreen({
           aria-label="Round summary"
         >
           <div
-            className="stamp-pop w-full max-w-md border-[3px] p-5 space-y-4"
+            className="stamp-pop w-full max-w-md max-h-[88dvh] overflow-y-auto no-scrollbar border-[3px] p-5 space-y-3.5"
             style={{
               borderColor: palette.ink,
               backgroundColor: palette.paper,
@@ -587,10 +622,18 @@ export function GameplayScreen({
             <div className="border-b-[3px] pb-3 flex items-center justify-between" style={{ borderColor: palette.ink }}>
               <div>
                 <h2 className="font-display font-black text-xl uppercase tracking-wide">
-                  {summary.mode === 'daily' ? 'Daily Complete' : 'Session Summary'}
+                  {summary.mode === 'daily'
+                    ? 'Daily Complete'
+                    : summary.mode === 'zen'
+                      ? 'Zen Session'
+                      : 'Session Summary'}
                 </h2>
                 <div className="text-xs font-semibold opacity-75">
-                  {summary.isNewBest ? 'New Personal Best' : `Level ${summary.levelReached}`}
+                  {summary.mode === 'zen'
+                    ? 'Untimed Calm Play'
+                    : summary.isNewBest
+                      ? 'New Personal Best'
+                      : `Level ${summary.levelReached}`}
                 </div>
               </div>
               <div
@@ -601,19 +644,133 @@ export function GameplayScreen({
               </div>
             </div>
 
-            {summary.mode === 'daily' && summary.dailyTargetWord && (
+            {/* Newly Unlocked Bauhaus Theme Banner */}
+            {summary.newlyUnlockedPalettes && summary.newlyUnlockedPalettes.length > 0 && (
+              <div className="space-y-2">
+                {summary.newlyUnlockedPalettes.map((pid) => {
+                  const unlockedPal = PALETTES[pid];
+                  const isEquipped = palette.id === pid;
+                  return (
+                    <div
+                      key={pid}
+                      className="border-[3px] px-3 py-2.5 flex items-center justify-between gap-2"
+                      style={{
+                        borderColor: unlockedPal.ink,
+                        backgroundColor: unlockedPal.paper,
+                        color: unlockedPal.ink,
+                      }}
+                    >
+                      <div className="min-w-0">
+                        <div className="text-[10px] font-display font-black uppercase tracking-wider opacity-75">
+                          Theme Unlocked
+                        </div>
+                        <div className="font-display font-black text-sm uppercase truncate">
+                          {unlockedPal.name}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        <span className="w-3.5 h-3.5 border border-black" style={{ backgroundColor: unlockedPal.red }} />
+                        <span className="w-3.5 h-3.5 border border-black" style={{ backgroundColor: unlockedPal.blue }} />
+                        <span className="w-3.5 h-3.5 border border-black" style={{ backgroundColor: unlockedPal.yellow }} />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            audioEngine.playWordVictory(3, false);
+                            onSelectPalette(pid);
+                          }}
+                          className="bauhaus-press ml-1 px-2.5 py-1 border-2 font-display font-black text-[10px] uppercase cursor-pointer whitespace-nowrap"
+                          style={{
+                            borderColor: unlockedPal.ink,
+                            backgroundColor: isEquipped ? unlockedPal.ink : unlockedPal.yellow,
+                            color: isEquipped ? unlockedPal.paper : unlockedPal.ink,
+                          }}
+                        >
+                          {isEquipped ? 'Active' : 'Equip'}
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Shareable Bauhaus Daily Result Card */}
+            {summary.mode === 'daily' && (
               <div
-                className="border-[3px] px-3.5 py-2.5 flex items-center justify-between text-xs font-bold"
-                style={{
-                  borderColor: palette.ink,
-                  backgroundColor: summary.dailyTargetFound ? palette.blue : palette.card,
-                  color: summary.dailyTargetFound ? '#F4F1DE' : palette.ink,
-                }}
+                className="border-[3px] p-3.5 space-y-2.5"
+                style={{ borderColor: palette.ink, backgroundColor: palette.card }}
               >
-                <span>Daily Word · {summary.dailyTargetWord}</span>
-                <span className="uppercase font-display font-black">
-                  {summary.dailyTargetFound ? 'Found +250' : 'Missed'}
-                </span>
+                <div className="flex items-center justify-between text-[11px] font-display font-black uppercase tracking-wider">
+                  <span>Word Weather · Daily</span>
+                  <span className="font-mono-num opacity-75">{summary.dailyDate}</span>
+                </div>
+
+                {/* Geometric Weather Flow Blocks */}
+                <div className="flex items-center gap-1 flex-wrap" aria-label="Weather sequence blocks">
+                  {(summary.weatherSequence.length > 0 ? summary.weatherSequence.slice(0, 12) : (['rain'] as WeatherType[])).map(
+                    (w, idx) => {
+                      const colors = getWeatherColors(w, palette);
+                      return (
+                        <span
+                          key={`${w}-${idx}`}
+                          title={WEATHER_META[w].label}
+                          className="w-5 h-5 border-2 inline-block"
+                          style={{ backgroundColor: colors.bg, borderColor: palette.ink }}
+                        />
+                      );
+                    },
+                  )}
+                </div>
+
+                <div className="flex items-center justify-between text-xs font-bold pt-0.5">
+                  <span>
+                    Target: {summary.dailyTargetWord}{' '}
+                    <strong style={{ color: summary.dailyTargetFound ? palette.blue : palette.red }}>
+                      {summary.dailyTargetFound ? '✓ Found' : '✕ Missed'}
+                    </strong>
+                  </span>
+                  <span className="font-mono-num">Shifts: {summary.weatherShifts}</span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 pt-1">
+                  <button
+                    type="button"
+                    onClick={() => handleShareDaily(false)}
+                    className="bauhaus-btn h-10 px-2.5 flex items-center justify-center gap-1.5 font-display font-black text-xs uppercase tracking-wider cursor-pointer whitespace-nowrap"
+                    style={{ backgroundColor: palette.yellow, color: palette.ink }}
+                  >
+                    {shareFeedback === 'copied' ? (
+                      <>
+                        <Check className="w-4 h-4" strokeWidth={3} />
+                        <span>Copied</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-4 h-4" strokeWidth={2.6} />
+                        <span>Copy Card</span>
+                      </>
+                    )}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleShareDaily(true)}
+                    className="bauhaus-btn h-10 px-2.5 flex items-center justify-center gap-1.5 font-display font-black text-xs uppercase tracking-wider cursor-pointer whitespace-nowrap"
+                    style={{ backgroundColor: palette.blue, color: '#F4F1DE' }}
+                  >
+                    {shareFeedback === 'shared' ? (
+                      <>
+                        <Check className="w-4 h-4" strokeWidth={3} />
+                        <span>Shared</span>
+                      </>
+                    ) : (
+                      <>
+                        <Share2 className="w-4 h-4" strokeWidth={2.6} />
+                        <span>Share</span>
+                      </>
+                    )}
+                  </button>
+                </div>
               </div>
             )}
 

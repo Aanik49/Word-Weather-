@@ -1,6 +1,12 @@
-import { X } from 'lucide-react';
+import { Lock, X } from 'lucide-react';
 import { audioEngine } from '../game/audioEngine';
-import { PALETTES, WEATHER_META, WEATHER_ORDER } from '../game/palettes';
+import {
+  getPaletteUnlockProgress,
+  PALETTE_ORDER,
+  PALETTES,
+  WEATHER_META,
+  WEATHER_ORDER,
+} from '../game/palettes';
 import type {
   BauhausPalette,
   GameSettings,
@@ -248,6 +254,99 @@ export function BauhausModal({
                 >
                   {settings.hapticsEnabled ? 'On' : 'Off'}
                 </button>
+              </div>
+
+              {/* Milestone Archival Bauhaus Themes */}
+              <div className="border-[3px] p-3.5 space-y-3" style={{ borderColor: palette.ink }}>
+                <div className="flex items-center justify-between gap-2">
+                  <div>
+                    <div className="font-display font-extrabold text-sm">Archival Themes</div>
+                    <div className="text-xs opacity-75">Unlock palettes via word & score milestones</div>
+                  </div>
+                  <span className="font-mono-num text-xs font-bold opacity-80 whitespace-nowrap">
+                    {PALETTE_ORDER.filter((id) => getPaletteUnlockProgress(id, stats).unlocked).length}/{PALETTE_ORDER.length}
+                  </span>
+                </div>
+
+                <div className="space-y-2.5">
+                  {PALETTE_ORDER.map((id) => {
+                    const item = PALETTES[id];
+                    const active = item.id === palette.id;
+                    const { unlocked, progressPct, progressText } = getPaletteUnlockProgress(id, stats);
+
+                    return (
+                      <button
+                        key={item.id}
+                        type="button"
+                        disabled={!unlocked}
+                        onClick={() => {
+                          if (!unlocked) return;
+                          audioEngine.unlock();
+                          audioEngine.playWordVictory(3, false);
+                          onSelectPalette(item.id);
+                        }}
+                        className={`w-full p-2.5 text-left border-[2.5px] transition-transform ${
+                          unlocked
+                            ? 'bauhaus-press cursor-pointer'
+                            : 'opacity-75 cursor-not-allowed'
+                        }`}
+                        style={{
+                          backgroundColor: item.paper,
+                          color: item.ink,
+                          borderColor: item.ink,
+                          boxShadow: active ? `3px 3px 0px ${item.ink}` : 'none',
+                        }}
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="min-w-0">
+                            <div className="font-display font-black text-xs uppercase flex items-center gap-1.5">
+                              {!unlocked && <Lock className="w-3.5 h-3.5 shrink-0" strokeWidth={2.6} />}
+                              <span className="truncate">{item.name}</span>
+                            </div>
+                            <div className="text-[11px] font-semibold opacity-75 mt-0.5 leading-snug">
+                              {unlocked ? item.desc : item.unlockRule?.requirementText}
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-1 shrink-0">
+                            <span className="w-3.5 h-3.5 border-[1.5px] border-black" style={{ backgroundColor: item.red }} />
+                            <span className="w-3.5 h-3.5 border-[1.5px] border-black" style={{ backgroundColor: item.blue }} />
+                            <span className="w-3.5 h-3.5 border-[1.5px] border-black" style={{ backgroundColor: item.yellow }} />
+                            <span
+                              className="ml-1 px-2 py-0.5 text-[10px] font-display font-black uppercase border-[1.5px] border-black whitespace-nowrap"
+                              style={{
+                                backgroundColor: active ? item.ink : 'transparent',
+                                color: active ? item.paper : item.ink,
+                              }}
+                            >
+                              {active ? 'Active' : unlocked ? 'Use' : 'Locked'}
+                            </span>
+                          </div>
+                        </div>
+
+                        {!unlocked && (
+                          <div className="mt-2 space-y-1">
+                            <div
+                              className="w-full h-2 border-[1.5px] overflow-hidden"
+                              style={{ borderColor: item.ink, backgroundColor: item.card }}
+                            >
+                              <div
+                                className="h-full transition-transform duration-200"
+                                style={{
+                                  width: `${progressPct}%`,
+                                  backgroundColor: item.blue,
+                                }}
+                              />
+                            </div>
+                            <div className="text-[10px] font-mono-num font-bold opacity-75">
+                              {progressText}
+                            </div>
+                          </div>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             </>
           )}

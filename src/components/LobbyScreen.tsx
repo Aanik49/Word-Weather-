@@ -266,7 +266,7 @@ export function LobbyScreen({
             </div>
           </div>
 
-          {/* Bottom Action Buttons: PLAY (Red) · SETTINGS (Full Yellow) · DAILY CHALLENGE (Blue) */}
+          {/* Bottom Action Buttons: PLAY (Red) · ZEN MODE (Yellow) · DAILY CHALLENGE (Blue) */}
           <div className="w-full grid grid-cols-3 gap-2.5 sm:gap-3.5 items-stretch">
             {/* PLAY */}
             <button
@@ -293,13 +293,12 @@ export function LobbyScreen({
               </span>
             </button>
 
-            {/* SETTINGS (Full Yellow, No Circle, Same Font Size as Daily Challenge) */}
+            {/* ZEN MODE (Center Triad · Full Yellow) */}
             <button
               type="button"
               onClick={() => {
                 audioEngine.unlock();
-                audioEngine.playUiClick();
-                onOpenModal('settings');
+                onStartGame('zen');
               }}
               className="bauhaus-btn min-h-[82px] sm:min-h-[88px] flex flex-col items-center justify-center px-2 py-2.5 text-center cursor-pointer"
               style={{
@@ -312,7 +311,12 @@ export function LobbyScreen({
                 className="font-display font-black text-xs sm:text-sm leading-tight tracking-wide uppercase"
                 style={{ textShadow: '1.5px 1.5px 0px rgba(244, 241, 222, 0.9)' }}
               >
-                Settings
+                Zen
+                <br />
+                Mode
+              </span>
+              <span className="text-[10px] font-bold opacity-85 mt-1 whitespace-nowrap">
+                Untimed · Calm
               </span>
             </button>
 
@@ -343,6 +347,38 @@ export function LobbyScreen({
               </span>
             </button>
           </div>
+
+          {/* SETTINGS (Full-width bar beneath game modes) */}
+          <button
+            type="button"
+            onClick={() => {
+              audioEngine.unlock();
+              audioEngine.playUiClick();
+              onOpenModal('settings');
+            }}
+            className="bauhaus-btn w-full h-12 px-4 flex items-center justify-between cursor-pointer"
+            style={{
+              backgroundColor: palette.card,
+              color: palette.ink,
+              borderColor: palette.ink,
+            }}
+          >
+            <span className="flex items-center gap-2.5">
+              <span
+                className="w-3.5 h-3.5 border-[2.5px] inline-block shrink-0"
+                style={{ borderColor: palette.ink, backgroundColor: palette.yellow }}
+              />
+              <span
+                className="font-display font-black text-xs sm:text-sm tracking-wider uppercase"
+                style={{ textShadow: '1.5px 1.5px 0px rgba(244, 241, 222, 0.9)' }}
+              >
+                Settings
+              </span>
+            </span>
+            <span className="text-[11px] font-bold opacity-75 whitespace-nowrap">
+              Audio · Themes · Physics
+            </span>
+          </button>
         </div>
       </div>
     </section>

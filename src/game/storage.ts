@@ -1,5 +1,6 @@
-import type { GameSettings, PaletteId, PlayerStats } from './types';
+import type { GameMode, GameSettings, PaletteId, PlayerStats } from './types';
 import { getTodayKey } from './dictionary';
+import { computeUnlockedPaletteIds } from './palettes';
 
 const SETTINGS_KEY = 'word_weather_settings_v1';
 const STATS_KEY = 'word_weather_stats_v1';
@@ -24,6 +25,7 @@ export const DEFAULT_STATS: PlayerStats = {
   dailyCompletedDate: null,
   dailyStreak: 0,
   equippedPalette: 'classic1923',
+  unlockedPalettes: ['classic1923'],
 };
 
 export function loadSettings(): GameSettings {
@@ -54,10 +56,18 @@ export function loadStats(): PlayerStats {
     const raw = localStorage.getItem(STATS_KEY);
     if (!raw) return { ...DEFAULT_STATS };
     const parsed = JSON.parse(raw) as Partial<PlayerStats>;
-    return {
+    const merged: PlayerStats = {
       ...DEFAULT_STATS,
       ...parsed,
+      unlockedPalettes: Array.isArray(parsed.unlockedPalettes)
+        ? Array.from(new Set<PaletteId>(['classic1923', ...parsed.unlockedPalettes]))
+        : ['classic1923'],
     };
+    merged.unlockedPalettes = computeUnlockedPaletteIds(merged);
+    if (!merged.unlockedPalettes.includes(merged.equippedPalette)) {
+      merged.equippedPalette = 'classic1923';
+    }
+    return merged;
   } catch {
     return { ...DEFAULT_STATS };
   }
@@ -74,16 +84,22 @@ export function saveStats(stats: PlayerStats): void {
 export function recordRoundStats(
   current: PlayerStats,
   params: {
-    mode: 'classic' | 'daily';
+    mode: GameMode;
     score: number;
     wordsFound: string[];
     bestCombo: number;
     physicsBonuses: number;
     dailyCompleted: boolean;
   },
-): { nextStats: PlayerStats; isNewBest: boolean } {
-  const prevBest = params.mode === 'daily' ? current.dailyBestScore : current.highScore;
-  const isNewBest = params.score > prevBest && params.score > 0;
+): { nextStats: PlayerStats; isNewBest: boolean; newlyUnlockedPalettes: PaletteId[] } {
+  const prevUnlocked = new Set<PaletteId>(computeUnlockedPaletteIds(current));
+  const prevBest =
+    params.mode === 'daily'
+      ? current.dailyBestScore
+      : params.mode === 'classic'
+        ? current.highScore
+        : Infinity;
+  const isNewBest = params.mode !== 'zen' && params.score > prevBest && params.score > 0;
 
   let longestWord = current.longestWord;
   for (const w of params.wordsFound) {
@@ -100,7 +116,7 @@ export function recordRoundStats(
     }
   }
 
-  const nextStats: PlayerStats = {
+  const candidateStats: PlayerStats = {
     ...current,
     highScore: params.mode === 'classic' ? Math.max(current.highScore, params.score) : current.highScore,
     dailyBestScore: params.mode === 'daily' ? Math.max(current.dailyBestScore, params.score) : current.dailyBestScore,
@@ -112,12 +128,21 @@ export function recordRoundStats(
     dailyStreak,
   };
 
+  const nextUnlocked = computeUnlockedPaletteIds(candidateStats);
+  const newlyUnlockedPalettes = nextUnlocked.filter((id) => !prevUnlocked.has(id));
+  const nextStats: PlayerStats = {
+    ...candidateStats,
+    unlockedPalettes: nextUnlocked,
+  };
+
   saveStats(nextStats);
-  return { nextStats, isNewBest };
+  return { nextStats, isNewBest, newlyUnlockedPalettes };
 }
 
 export function updateEquippedPalette(current: PlayerStats, paletteId: PaletteId): PlayerStats {
-  const next = { ...current, equippedPalette: paletteId };
+  const unlocked = computeUnlockedPaletteIds(current);
+  if (!unlocked.includes(paletteId)) return current;
+  const next: PlayerStats = { ...current, equippedPalette: paletteId, unlockedPalettes: unlocked };
   saveStats(next);
   return next;
 }

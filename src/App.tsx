@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { BauhausModal } from './components/BauhausModal';
 import { GameplayScreen } from './components/GameplayScreen';
 import { LobbyScreen } from './components/LobbyScreen';
@@ -30,6 +30,8 @@ export default function App() {
   const [activeModal, setActiveModal] = useState<ModalType>(null);
   const [settings, setSettings] = useState<GameSettings>(() => loadSettings());
   const [stats, setStats] = useState<PlayerStats>(() => loadStats());
+  const statsRef = useRef<PlayerStats>(stats);
+  statsRef.current = stats;
 
   const palette = PALETTES[stats.equippedPalette] ?? PALETTES.classic1923;
 
@@ -44,8 +46,8 @@ export default function App() {
   }, [settings]);
 
   useEffect(() => {
-    audioEngine.setContextState(weather, screen === 'PLAYING');
-  }, [weather, screen]);
+    audioEngine.setContextState(weather, screen === 'PLAYING', mode === 'zen');
+  }, [weather, screen, mode]);
 
   // Lobby keyboard shortcuts (Enter/Space to start, 1-4 to preview weather)
   useEffect(() => {
@@ -124,25 +126,28 @@ export default function App() {
   }, []);
 
   const handleSelectPalette = useCallback((paletteId: PaletteId) => {
-    setStats((prev) => updateEquippedPalette(prev, paletteId));
+    const next = updateEquippedPalette(statsRef.current, paletteId);
+    statsRef.current = next;
+    setStats(next);
   }, []);
 
   const handleRecordRound = useCallback(
     (rawSummary: RoundSummaryData): RoundSummaryData => {
-      let isNewBest = false;
-      setStats((prev) => {
-        const res = recordRoundStats(prev, {
-          mode: rawSummary.mode,
-          score: rawSummary.score,
-          wordsFound: rawSummary.wordsFound,
-          bestCombo: rawSummary.bestCombo,
-          physicsBonuses: rawSummary.physicsBonuses,
-          dailyCompleted: rawSummary.mode === 'daily' && Boolean(rawSummary.dailyTargetFound),
-        });
-        isNewBest = res.isNewBest;
-        return res.nextStats;
+      const res = recordRoundStats(statsRef.current, {
+        mode: rawSummary.mode,
+        score: rawSummary.score,
+        wordsFound: rawSummary.wordsFound,
+        bestCombo: rawSummary.bestCombo,
+        physicsBonuses: rawSummary.physicsBonuses,
+        dailyCompleted: rawSummary.mode === 'daily' && rawSummary.wordsFound.length > 0,
       });
-      return { ...rawSummary, isNewBest };
+      statsRef.current = res.nextStats;
+      setStats(res.nextStats);
+      return {
+        ...rawSummary,
+        isNewBest: res.isNewBest,
+        newlyUnlockedPalettes: res.newlyUnlockedPalettes,
+      };
     },
     [],
   );
@@ -180,6 +185,7 @@ export default function App() {
           onWeatherChange={setWeather}
           onExitToLobby={handleExitToLobby}
           onOpenSettings={() => setActiveModal('settings')}
+          onSelectPalette={handleSelectPalette}
           onToggleAudioQuick={handleToggleAudioQuick}
           onRecordRound={handleRecordRound}
         />

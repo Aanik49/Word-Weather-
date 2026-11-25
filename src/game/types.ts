@@ -2,13 +2,20 @@ export type ScreenState = 'SPLASH' | 'LOBBY' | 'PLAYING';
 
 export type PlayPhase = 'ACTIVE' | 'PAUSED' | 'ROUND_SUMMARY';
 
-export type GameMode = 'classic' | 'daily';
+export type GameMode = 'classic' | 'daily' | 'zen';
 
 export type WeatherType = 'rain' | 'snow' | 'wind' | 'sun';
 
 export type PaletteId = 'classic1923' | 'dessauNight' | 'primaryRed' | 'weimarTeal';
 
 export type ModalType = 'settings' | 'profile' | 'store' | 'guide' | null;
+
+export interface PaletteUnlockRule {
+  requiredWords: number;
+  requiredScore: number;
+  allowDailyComplete?: boolean;
+  requirementText: string;
+}
 
 export interface BauhausPalette {
   id: PaletteId;
@@ -20,6 +27,7 @@ export interface BauhausPalette {
   red: string;
   blue: string;
   yellow: string;
+  unlockRule?: PaletteUnlockRule;
 }
 
 export interface GameSettings {
@@ -42,6 +50,7 @@ export interface PlayerStats {
   dailyCompletedDate: string | null;
   dailyStreak: number;
   equippedPalette: PaletteId;
+  unlockedPalettes: PaletteId[];
 }
 
 export interface LetterTile {
@@ -150,7 +159,11 @@ export interface RoundSummaryData {
   bestWord: string;
   bestCombo: number;
   physicsBonuses: number;
+  weatherShifts: number;
+  weatherSequence: WeatherType[];
+  dailyDate?: string;
   dailyTargetWord?: string;
   dailyTargetFound?: boolean;
   levelReached: number;
+  newlyUnlockedPalettes?: PaletteId[];
 }
